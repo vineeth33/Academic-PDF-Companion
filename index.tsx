@@ -504,7 +504,7 @@ function App() {
         </section>
       )}
        <footer className="app-footer">
-          <p>Powered by Gemini</p>
+          <p>Incorporates generative capabilities through Google's Gemini API.</p>
       </footer>
     </div>
   );
