@@ -103,7 +103,7 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [progressMessage, setProgressMessage] = useState<string | null>(null)
 
-  const [theme, setTheme] = useState("light")
+  const [theme, setTheme] = useState("dark")
   const [processedQuiz, setProcessedQuiz] = useState<QuizQuestion[]>([])
   const [quizFeedbackMessage, setQuizFeedbackMessage] = useState<string | null>(null);
   const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
