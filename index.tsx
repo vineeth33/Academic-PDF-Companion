@@ -1,4 +1,3 @@
-
 "use client"
 
 /**
@@ -6,7 +5,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import jsPDF from "jspdf"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState, useCallback } from "react"
 import ReactDOM from "react-dom/client"
 
 const DOCUMENT_TYPES = [
@@ -117,7 +116,7 @@ function App() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const backendBaseUrl = 'http://localhost:3001';
+  const backendBaseUrl = 'https://academic-pdf-companion.onrender.com';
   const backendUrl = `${backendBaseUrl}/api/analyze-pdf`;
   const chatBackendUrl = `${backendBaseUrl}/api/follow-up-chat`;
   const quizFeedbackBackendUrl = `${backendBaseUrl}/api/quiz-feedback`;
@@ -683,7 +682,7 @@ function App() {
             <article className="card"><h3>Reading Suggestions</h3><ul className="reading-suggestions-list">
                 {apiResponse.readingSuggestions.map((suggestion: ReadingSuggestion, index: number) => (
                   <li key={index}>
-                    <a href={suggestion.url} target="_blank" rel="noopener noreferrer" style={{ color: '#7D5EFF', textDecoration: 'none' }}>{suggestion.title}</a>
+                    <a href={suggestion.url} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--link-color)', textDecoration: 'none' }}>{suggestion.title}</a>
                   </li>
                 ))}</ul></article>
           )}
@@ -691,7 +690,7 @@ function App() {
       )}
       <footer className="app-footer">
         <h3>Incorporates generative capabilities through Google's Gemini API.</h3>
-        <a href="https://vineethummadisettyportfolio.vercel.app/" style={{ color: '#7D5EFF', textDecoration: 'none' }}>Vineeth Ummadisetty</a>
+        <a href="https://vineethummadisettyportfolio.vercel.app/" style={{ color: 'var(--link-color)', textDecoration: 'none' }}>Vineeth Ummadisetty</a>
 
       </footer>
     </div>
