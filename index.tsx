@@ -1,3 +1,4 @@
+
 "use client"
 
 /**
@@ -5,7 +6,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import jsPDF from "jspdf"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import ReactDOM from "react-dom/client"
 
 const DOCUMENT_TYPES = [
@@ -16,7 +17,7 @@ const DOCUMENT_TYPES = [
   { value: "case_study", label: "Case Study" },
 ]
 
-// --- Icons (SunIcon, MoonIcon, DownloadIcon, PrintIcon) remain the same ---
+// --- Icons (SunIcon, MoonIcon, DownloadIcon, PrintIcon, SendIcon) remain the same ---
 const SunIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
@@ -65,6 +66,21 @@ interface ChatMessage {
   id: string;
 }
 
+interface QuizQuestion {
+  question: string;
+  type: "multiple_choice" | "true_false" | "short_answer";
+  options?: string[];
+  answer: string;
+  userSelectedOption?: string | null;
+  isAttempted?: boolean;
+  showShortAnswer?: boolean;
+}
+
+interface ReadingSuggestion {
+  title: string;
+  url: string;
+}
+
 function App() {
   const [pdfFile, setPdfFile] = useState<File | null>(null)
   const [fileName, setFileName] = useState("")
@@ -89,7 +105,11 @@ function App() {
   const [progressMessage, setProgressMessage] = useState<string | null>(null)
 
   const [theme, setTheme] = useState("light")
-  const [processedQuiz, setProcessedQuiz] = useState<any[]>([])
+  const [processedQuiz, setProcessedQuiz] = useState<QuizQuestion[]>([])
+  const [quizFeedbackMessage, setQuizFeedbackMessage] = useState<string | null>(null);
+  const [isFeedbackLoading, setIsFeedbackLoading] = useState(false);
+  const [allQuestionsAnswered, setAllQuestionsAnswered] = useState(false);
+
 
   // Chat specific state
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -97,21 +117,21 @@ function App() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
+  const backendBaseUrl = 'http://localhost:3001';
+  const backendUrl = `${backendBaseUrl}/api/analyze-pdf`;
+  const chatBackendUrl = `${backendBaseUrl}/api/follow-up-chat`;
+  const quizFeedbackBackendUrl = `${backendBaseUrl}/api/quiz-feedback`;
 
-  const backendUrl = 'http://localhost:3001/api/analyze-pdf';
-  const chatBackendUrl = 'http://localhost:3001/api/follow-up-chat';
 
   useEffect(() => { document.documentElement.setAttribute("data-theme", theme) }, [theme])
   const toggleTheme = () => { setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light")) }
 
-  // Scroll chat to bottom
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [chatHistory]);
 
-  // --- Export functions (exportSummaryAsPDF, exportQuizAsPDF, printQuiz) remain largely the same ---
   const exportSummaryAsPDF = () => {
     if (!apiResponse) return
     const pdf = new jsPDF()
@@ -156,9 +176,12 @@ function App() {
       if (yPosition > 250) { pdf.addPage(); yPosition = 20; }
       pdf.setFontSize(16); pdf.text("Reading Suggestions", 20, yPosition); yPosition += 10
       pdf.setFontSize(11);
-      apiResponse.readingSuggestions.forEach((suggestion: string, index: number) => {
+      apiResponse.readingSuggestions.forEach((suggestion: ReadingSuggestion, index: number) => {
         if (yPosition > 270) { pdf.addPage(); yPosition = 20; }
-        pdf.text(`${index + 1}. ${suggestion}`, 20, yPosition); yPosition += 7
+         const textToPrint = `${index + 1}. ${suggestion.title} (${suggestion.url})`;
+        const splitText = pdf.splitTextToSize(textToPrint, 170);
+        pdf.text(splitText, 20, yPosition);
+        yPosition += splitText.length * 5 + 2; // Adjust spacing
       })
     }
     pdf.save(`${fileName.replace(".pdf", "")}_summary.pdf`)
@@ -173,7 +196,7 @@ function App() {
       if (yPosition > 250) { pdf.addPage(); yPosition = 20; }
       pdf.setFontSize(12); pdf.setFont(undefined, "bold"); const ql = pdf.splitTextToSize(`Q${index + 1}: ${item.question}`, 170); pdf.text(ql, 20, yPosition); yPosition += ql.length * 6 + 5
       pdf.setFont(undefined, "normal");
-      if (item.type === "multiple_choice" && item.options) {
+      if ((item.type === "multiple_choice" || item.type === "true_false") && item.options) {
         item.options.forEach((option: string, optIndex: number) => {
           if (yPosition > 270) { pdf.addPage(); yPosition = 20; }
           pdf.text(`   ${String.fromCharCode(65 + optIndex)}. ${option}`, 25, yPosition); yPosition += 6
@@ -196,36 +219,112 @@ function App() {
       ${processedQuiz.map((item, index) => `
         <div class="question">
           <div class="question-text">Q${index + 1}: ${item.question}</div>
-          ${item.type === "multiple_choice" && item.options ? item.options.map((option: string, optIndex: number) =>
+          ${(item.type === "multiple_choice" || item.type === "true_false") && item.options ? item.options.map((option: string, optIndex: number) =>
               `<div class="option">${String.fromCharCode(65 + optIndex)}. ${option}</div>`).join("")
-            : '<div class="answer-line"></div>'}
+            : (item.type === "short_answer" ? '<div class="answer-line"></div>' : '')}
         </div>`).join("")}
       </body></html>`;
     const printWindow = window.open("", "_blank");
     if (printWindow) { printWindow.document.write(printContent); printWindow.document.close(); printWindow.print(); }
   }
 
-
   useEffect(() => {
     if (apiResponse?.quiz) {
-      setProcessedQuiz(apiResponse.quiz.map((q: any) => ({ ...q, options: q.options || (q.answer?.toLowerCase() === "true" || q.answer?.toLowerCase() === "false" ? ["True", "False"] : []), userSelectedOption: null, isAttempted: false, showShortAnswer: false })))
-    } else { setProcessedQuiz([]) }
+        const initialQuiz = apiResponse.quiz.map((q: any) => ({
+            ...q,
+            options: q.options || (q.type === "true_false" ? ["True", "False"] : []),
+            userSelectedOption: null,
+            isAttempted: false,
+            showShortAnswer: false
+        } as QuizQuestion));
+      setProcessedQuiz(initialQuiz);
+      setAllQuestionsAnswered(false);
+      setQuizFeedbackMessage(null);
+    } else {
+      setProcessedQuiz([]);
+      setAllQuestionsAnswered(false);
+      setQuizFeedbackMessage(null);
+    }
 
-    // Initialize chat history when initial chat answer comes
     if (apiResponse?.chatAnswer && initialQuestion && chatSupport) {
       setChatHistory([
         { role: 'user', text: initialQuestion, id: Date.now().toString() + '_user' },
         { role: 'model', text: apiResponse.chatAnswer, id: Date.now().toString() + '_model' }
       ]);
-    } else if (!chatSupport || !initialQuestion) { // Reset chat if chat support is disabled or no initial question was asked
+    } else if (!chatSupport || !initialQuestion) {
         setChatHistory([]);
     }
-  }, [apiResponse, initialQuestion, chatSupport]) // Added initialQuestion and chatSupport dependencies
+  }, [apiResponse, initialQuestion, chatSupport])
+
+
+  const fetchQuizFeedback = useCallback(async () => {
+    if (!pdfFile || processedQuiz.length === 0 || !allQuestionsAnswered) return;
+
+    setIsFeedbackLoading(true);
+    setError(null);
+
+    const correctAnswers = processedQuiz.filter(q => q.userSelectedOption === q.answer).length;
+    const totalQuestions = processedQuiz.length;
+    const score = totalQuestions > 0 ? correctAnswers / totalQuestions : 0;
+
+    const incorrectQuestions = processedQuiz
+      .filter(q => q.isAttempted && q.userSelectedOption !== q.answer)
+      .map(q => ({
+        question: q.question,
+        userAnswer: q.userSelectedOption,
+        correctAnswer: q.answer
+      }));
+
+    try {
+      const base64PdfData = await convertFileToBase64(pdfFile);
+      const response = await fetch(quizFeedbackBackendUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          base64PdfData,
+          pdfMimeType: pdfFile.type,
+          score,
+          incorrectQuestions
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error from server" }));
+        throw new Error(errorData.error || `Server responded with ${response.status}`);
+      }
+      const data = await response.json();
+      setQuizFeedbackMessage(data.feedback || "No specific feedback provided.");
+    } catch (err: any) {
+      console.error("Error fetching quiz feedback:", err);
+      setError(`Failed to get quiz feedback: ${err.message}`);
+      setQuizFeedbackMessage(null);
+    } finally {
+      setIsFeedbackLoading(false);
+    }
+  }, [pdfFile, processedQuiz, allQuestionsAnswered, quizFeedbackBackendUrl]);
+
+
+  useEffect(() => {
+    if (processedQuiz && processedQuiz.length > 0) {
+      const allDone = processedQuiz.every(q => q.isAttempted);
+      setAllQuestionsAnswered(allDone);
+      if (allDone && !quizFeedbackMessage && !isFeedbackLoading && pdfFile) {
+         fetchQuizFeedback();
+      }
+    } else {
+      setAllQuestionsAnswered(false);
+    }
+  }, [processedQuiz, quizFeedbackMessage, isFeedbackLoading, pdfFile, fetchQuizFeedback]);
+
+
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      if (file.type === "application/pdf") { setPdfFile(file); setFileName(file.name); setError(null); setApiResponse(null); setChatHistory([]); }
+      if (file.type === "application/pdf") {
+        setPdfFile(file); setFileName(file.name); setError(null); setApiResponse(null);
+        setChatHistory([]); setProcessedQuiz([]); setQuizFeedbackMessage(null); setAllQuestionsAnswered(false);
+      }
       else { setPdfFile(null); setFileName(""); setError("Please upload a valid PDF file.") }
     }
   }
@@ -244,7 +343,8 @@ function App() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!pdfFile) { setError("Please upload a PDF file."); return; }
-    setIsLoading(true); setError(null); setApiResponse(null); setProcessedQuiz([]); setChatHistory([]); // Reset chat history on new analysis
+    setIsLoading(true); setError(null); setApiResponse(null); setProcessedQuiz([]);
+    setChatHistory([]); setQuizFeedbackMessage(null); setAllQuestionsAnswered(false);
     setProgressMessage("Preparing your document...")
     try {
       const base64PdfData = await convertFileToBase64(pdfFile)
@@ -290,7 +390,7 @@ function App() {
       const requestBody = {
         base64PdfData,
         pdfMimeType: pdfFile.type,
-        chatHistory: [...chatHistory, newUserMessage], // Send the updated history
+        chatHistory: [...chatHistory, newUserMessage], 
         newMessageText: currentFollowUp,
       };
 
@@ -323,8 +423,22 @@ function App() {
   };
 
 
-  const handleQuizOptionSelect = (quizIndex: number, option: string) => { setProcessedQuiz((prevQuiz) => prevQuiz.map((q, idx) => (idx === quizIndex ? { ...q, userSelectedOption: option, isAttempted: true } : q))) }
-  const toggleShortAnswer = (quizIndex: number) => { setProcessedQuiz((prevQuiz) => prevQuiz.map((q, idx) => (idx === quizIndex ? { ...q, showShortAnswer: !q.showShortAnswer, isAttempted: true } : q))) }
+  const handleQuizOptionSelect = (quizIndex: number, option: string) => {
+    setProcessedQuiz((prevQuiz) =>
+      prevQuiz.map((q, idx) =>
+        idx === quizIndex ? { ...q, userSelectedOption: option, isAttempted: true } : q
+      )
+    );
+  };
+
+  const toggleShortAnswer = (quizIndex: number) => {
+    setProcessedQuiz((prevQuiz) =>
+      prevQuiz.map((q, idx) =>
+        idx === quizIndex ? { ...q, showShortAnswer: !q.showShortAnswer, isAttempted: true } : q
+      )
+    );
+  };
+
 
   return (
     <div className="app-container">
@@ -340,7 +454,6 @@ function App() {
       <div className="main-content">
         <div className="left-panel">
           <form onSubmit={handleSubmit} className="form-section card" aria-labelledby="form-heading">
-            {/* Form content remains the same, including chatSupport and initialQuestion fields */}
             <h2 id="form-heading" className="sr-only">Analysis Configuration</h2>
             <div className="form-grid">
               <div className="form-group">
@@ -443,7 +556,7 @@ function App() {
       </div>
 
       {isLoading && (<div className="loading-message card" aria-live="polite"><div className="spinner"></div><p>{progressMessage || "Processing..."}</p></div>)}
-      {error && !isChatLoading && (<p className="error-message card" role="alert">{error}</p>)} {/* Hide main error if chat is loading/errored */}
+      {error && !isChatLoading && (<p className="error-message card" role="alert">{error}</p>)}
 
 
       {apiResponse && !isLoading && (
@@ -466,18 +579,37 @@ function App() {
                 ))}</ul></article>
           )}
           {processedQuiz && processedQuiz.length > 0 && (
-            <article className="card"><h3>Quiz</h3>
+            <article className="card quiz-section"><h3>Quiz</h3>
               {processedQuiz.map((item, index) => (
                 <div key={index} className="quiz-item">
                   <p className="quiz-question"><strong>Q{index + 1}:</strong> {item.question}</p>
-                  {item.type === "multiple_choice" && item.options && item.options.length > 0 && (
+                  {(item.type === "multiple_choice" || item.type === "true_false") && item.options && item.options.length > 0 && (
                     <div className="quiz-options">
                       {item.options.map((option: string, optIndex: number) => {
-                        const isSelected = item.userSelectedOption === option; const isCorrect = option === item.answer;
+                        const isSelected = item.userSelectedOption === option;
+                        const isCorrect = option === item.answer;
                         let buttonClass = "quiz-option-button";
-                        if (item.isAttempted) { if (isCorrect) buttonClass += " correct"; else if (isSelected && !isCorrect) buttonClass += " incorrect"; else buttonClass += " disabled"; }
-                        return (<button key={optIndex} className={buttonClass} onClick={() => !item.isAttempted && handleQuizOptionSelect(index, option)} disabled={item.isAttempted && !isSelected && !isCorrect} aria-pressed={isSelected}>{option}</button>)
-                      })}</div>
+                        if (item.isAttempted) {
+                           if (isSelected && isCorrect) buttonClass += " correct selected";
+                           else if (isSelected && !isCorrect) buttonClass += " incorrect selected";
+                           else if (!isSelected && isCorrect) buttonClass += " correct";
+                           else buttonClass += " disabled";
+                        }
+                        return (
+                            <button
+                                key={optIndex}
+                                className={buttonClass}
+                                onClick={() => !item.isAttempted && handleQuizOptionSelect(index, option)}
+                                disabled={item.isAttempted}
+                                aria-pressed={isSelected}
+                                aria-describedby={item.isAttempted && isCorrect ? `correct-answer-desc-${index}-${optIndex}`: undefined}
+                            >
+                                {option}
+                                {item.isAttempted && isCorrect && <span id={`correct-answer-desc-${index}-${optIndex}`} className="sr-only">(Correct Answer)</span>}
+                            </button>
+                        );
+                      })}
+                    </div>
                   )}
                   {item.type === "short_answer" && (
                     <div className="short-answer-container">
@@ -487,11 +619,28 @@ function App() {
                       {item.showShortAnswer && (<p id={`short-answer-${index}`} className="quiz-answer"><strong>Answer:</strong> {item.answer}</p>)}
                     </div>
                   )}
-                  {item.isAttempted && item.type === "multiple_choice" && item.userSelectedOption !== item.answer && (<p className="quiz-feedback">Correct answer: {item.answer}</p>)}
-                </div>))}
+                  {item.isAttempted && item.userSelectedOption !== item.answer && (item.type === "multiple_choice" || item.type === "true_false") && (
+                    <p className="quiz-feedback">Correct answer: {item.answer}</p>
+                  )}
+                </div>
+              ))}
+              {isFeedbackLoading && (
+                <div className="loading-message small-loading" aria-live="polite">
+                  <div className="spinner small-spinner"></div>
+                  <p>Generating feedback...</p>
+                </div>
+              )}
+              {allQuestionsAnswered && quizFeedbackMessage && !isFeedbackLoading && (
+                <div className="quiz-overall-feedback card">
+                  <h4>Quiz Feedback</h4>
+                  <p style={{ whiteSpace: 'pre-wrap' }}>{quizFeedbackMessage}</p>
+                </div>
+              )}
+               {allQuestionsAnswered && error && !isFeedbackLoading && (
+                 <p className="error-message card" role="alert">{error}</p>
+               )}
             </article>
           )}
-          {/* Conditional rendering for chat: Show initial answer OR full chat interface */}
            {(chatSupport && pdfFile && (apiResponse || chatHistory.length > 0)) && (
             <article className="card chat-feature-card">
               <h3>Interactive Chat</h3>
@@ -520,10 +669,9 @@ function App() {
                   <SendIcon />
                 </button>
               </form>
-               {error && isChatLoading && (<p className="error-message chat-error" role="alert">{error}</p>)} {/* Show chat specific error */}
+               {error && isChatLoading && (<p className="error-message chat-error" role="alert">{error}</p>)}
             </article>
           )}
-          {/* Hide old single chatAnswer display if chatSupport is on and has history or pdfFile */}
           {apiResponse?.chatAnswer && !(chatSupport && pdfFile && (apiResponse || chatHistory.length > 0)) && (
             <article className="card">
               <h3>Chat Response</h3>
@@ -533,13 +681,18 @@ function App() {
           )}
           {apiResponse.readingSuggestions && apiResponse.readingSuggestions.length > 0 && (
             <article className="card"><h3>Reading Suggestions</h3><ul className="reading-suggestions-list">
-                {apiResponse.readingSuggestions.map((suggestion: string, index: number) => (<li key={index}>{suggestion}</li>))}</ul></article>
+                {apiResponse.readingSuggestions.map((suggestion: ReadingSuggestion, index: number) => (
+                  <li key={index}>
+                    <a href={suggestion.url} target="_blank" rel="noopener noreferrer" style={{ color: '#7D5EFF', textDecoration: 'none' }}>{suggestion.title}</a>
+                  </li>
+                ))}</ul></article>
           )}
         </section>
       )}
       <footer className="app-footer">
         <h3>Incorporates generative capabilities through Google's Gemini API.</h3>
-        <p>© 2025 Vineeth Ummadisetty</p>
+        <a href="https://vineethummadisettyportfolio.vercel.app/" style={{ color: '#7D5EFF', textDecoration: 'none' }}>Vineeth Ummadisetty</a>
+
       </footer>
     </div>
   )

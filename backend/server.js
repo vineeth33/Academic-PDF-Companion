@@ -41,21 +41,29 @@ If a feature is not applicable or not requested, omit its key from the JSON resp
 Based on the document content and the following user requests:
 `;
 
-    if (simplifiedExplanation) prompt += `- "explanation": Provide a concise and simplified explanation...\n`;
-    if (pageByPageExplanation && pageNumbers) prompt += `- "pageExplanations": Provide detailed explanations for "${pageNumbers}"...\n`;
-    if (explainWithAnalogy && analogyTopic) prompt += `- "analogyExplanation": Explain "${analogyTopic}" with an analogy...\n`;
-    if (glossaryBuilder) prompt += `- "glossary": Generate a glossary...\n`;
-    if (quizGenerator) prompt += `- "quiz": Generate ${numQuestions || 3} quiz questions...\n`;
-    if (multilingualMode && language) prompt += `- "translatedText": Translate simplified explanation or summary into ${language}.\n`;
+    if (simplifiedExplanation) prompt += `- "explanation": Provide a concise and simplified explanation of the core concepts in the document.\n`;
+    if (pageByPageExplanation && pageNumbers) prompt += `- "pageExplanations": Provide detailed explanations for the specified pages or sections: "${pageNumbers}". Each item in the array should be an object with "page_reference" (string, e.g., "Page 5" or "Introduction") and "explanation" (string).\n`;
+    if (explainWithAnalogy && analogyTopic) prompt += `- "analogyExplanation": Explain the topic "${analogyTopic}" from the document using a relatable analogy.\n`;
+    if (glossaryBuilder) prompt += `- "glossary": Generate a glossary of 5-10 key terms found in the document. Each item in the array should be an object with "term" (string) and "definition" (string).\n`;
+    if (quizGenerator) {
+        prompt += `- "quiz": Generate ${numQuestions || 3} quiz questions related to the core concepts of the document.
+          Include a mix of multiple-choice (MCQ) and true/false questions.
+          Each question object in the JSON array must strictly adhere to the following structure:
+            "question": "The question text itself, as a string." (string),
+            "type": "multiple_choice" OR "true_false" (string, exactly one of these values),
+            "options": (array of strings) For MCQ, this will be like ["Option A text", "Option B text", "Option C text"]. For true_false, this will be ["True", "False"]. Each element in this array MUST be a string containing ONLY the option's text. No extra characters, citations, or explanations are allowed within or after any option string in this array. The array must contain only these option strings, and be properly formatted as a JSON array of strings.
+            "answer": "The exact text of the correct option from the 'options' array" (string for MCQ) OR "True" OR "False" (string for true_false, matching an option). The answer must be one of the provided options.\n`;
+    }
+    if (multilingualMode && language) prompt += `- "translatedText": If a simplified explanation or summary is generated, translate it into ${language}.\n`;
     
-    // Only include chatAnswer in the initial analysis if an initialQuestion is provided.
-    // If chatSupport is on but no initialQuestion, the user can start chatting via the new UI.
     if (chatSupport && initialQuestion) {
-      prompt += `- "chatAnswer": Answer: "${initialQuestion}".\n`;
+      prompt += `- "chatAnswer": Answer the following question based on the document: "${initialQuestion}".\n`;
     }
     
-    prompt += `- "readingSuggestions": Provide 2-3 reading suggestions...\n`;
-    prompt += `\nEnsure the output is a single, valid JSON object...\n`; // Truncated example part for brevity
+    prompt += `- "readingSuggestions": Provide 2-3 relevant reading suggestions if applicable, based on the document's content. Each suggestion should be an object with "title" (string) and "url" (string, a valid web URL). This should be an array of these objects.\n`;
+    prompt += `\nImportant: Ensure the output is a single, valid JSON object. Do not add any text or markdown formatting before or after the JSON. All string values within the JSON must be properly escaped.
+Specifically for "quiz.options": this MUST be an array of strings, where each string is only the option text. Example: ["Option 1", "Some other option", "Final choice"]. Do NOT include any other data or text within this array or after its elements that would break JSON structure.
+`;
 
     const filePart = { inlineData: { mimeType: pdfMimeType, data: base64PdfData } };
     const textPart = { text: prompt };
@@ -65,7 +73,7 @@ Based on the document content and the following user requests:
       contents: { parts: [filePart, textPart] },
       config: {
         responseMimeType: "application/json",
-        systemInstruction: "You are an API designed to output only valid, raw JSON...",
+        systemInstruction: "You are an API designed to output only valid, raw JSON as specified in the user's prompt. Do not include any explanatory text, markdown, or any other characters before or after the JSON object. Pay strict attention to array and string formatting within the JSON.",
       },
     });
 
@@ -78,8 +86,8 @@ Based on the document content and the following user requests:
       const parsedData = JSON.parse(jsonStr);
       res.json(parsedData);
     } catch (parseError) {
-      console.error('Failed to parse JSON from AI (initial analysis):', parseError, jsonStr);
-      res.status(500).json({ error: "AI returned unexpected format (initial analysis).", rawResponse: jsonStr });
+      console.error('Failed to parse JSON from AI (initial analysis):', parseError, '\nRaw response:', jsonStr);
+      res.status(500).json({ error: "AI returned an invalid JSON format (initial analysis). Please check the backend logs for the raw response.", rawResponse: jsonStr });
     }
 
   } catch (error) {
@@ -106,26 +114,19 @@ app.post('/api/follow-up-chat', async (req, res) => {
     if (!newMessageText || typeof newMessageText !== 'string' || newMessageText.trim() === "") {
         return res.status(400).json({ error: 'Missing new message text.' });
     }
-
-    // Construct history for Gemini, ensuring PDF context is first (implicitly via system instruction or first turn)
-    // For multi-turn chat, Gemini's Chat class manages history.
-    // We send the PDF with each turn conceptually. The Chat class handles how to use this.
     
     const modelChat = ai.chats.create({
-        model: 'gemini-2.5-flash-preview-04-17', // Ensure model supports chat
-        // System instruction for chat can be more conversational
+        model: 'gemini-2.5-flash-preview-04-17',
         config: {
-           systemInstruction: `You are an academic assistant helping a user understand the provided PDF document. Keep your answers concise and directly related to the document content and the user's questions. The PDF content is provided implicitly via the main analysis; refer to it when answering.`,
+           systemInstruction: `You are an academic assistant helping a user understand the provided PDF document. Keep your answers concise and directly related to the document content and the user's questions. The PDF content is provided implicitly with the user's message; refer to it when answering.`,
         },
-        history: chatHistory.filter(msg => msg.role === 'user' || msg.role === 'model').map(msg => ({ // Filter out system_error messages
+        history: chatHistory.filter(msg => msg.role === 'user' || msg.role === 'model').map(msg => ({
             role: msg.role,
             parts: [{ text: msg.text }]
         }))
     });
 
     const filePart = { inlineData: { mimeType: pdfMimeType, data: base64PdfData } };
-    // We send the PDF as part of the message content in each turn.
-    // The prompt for the message will be the newMessageText.
     const result = await modelChat.sendMessage({
         message: { parts: [ filePart, { text: newMessageText } ] }
     });
@@ -141,6 +142,68 @@ app.post('/api/follow-up-chat', async (req, res) => {
         statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
     } else if (error.message) message = error.message;
     res.status(statusCode).json({ error: 'Error processing your chat follow-up.', details: message });
+  }
+});
+
+app.post('/api/quiz-feedback', async (req, res) => {
+  try {
+    const { base64PdfData, pdfMimeType, score, incorrectQuestions } = req.body;
+
+    if (!base64PdfData || !pdfMimeType) {
+      return res.status(400).json({ error: 'Missing PDF data or MIME type for context.' });
+    }
+    if (score === undefined || typeof score !== 'number') {
+      return res.status(400).json({ error: 'Missing or invalid score.' });
+    }
+    if (!incorrectQuestions || !Array.isArray(incorrectQuestions)) {
+      return res.status(400).json({ error: 'Missing or invalid incorrect questions array.' });
+    }
+
+    let feedbackPrompt = `You are an academic advisor. The user has just completed a quiz on a PDF document that you have access to.
+Their score accuracy is ${Math.round(score * 100)}%.
+
+`;
+
+    if (incorrectQuestions.length > 0) {
+      feedbackPrompt += `The questions they answered incorrectly are:\n`;
+      incorrectQuestions.forEach(q => {
+        feedbackPrompt += `- Question: "${q.question}" (The correct answer was: "${q.correctAnswer}")\n`;
+      });
+      feedbackPrompt += `\nBased on this performance and the content of the PDF document, provide:
+1. A brief, encouraging overall suggestion based on their score.
+2. Specific areas or topics from the document they should focus on, derived from the incorrectly answered questions. Keep this concise and actionable.
+Relate your advice directly to the document's content where possible.
+`;
+    } else {
+      feedbackPrompt += `They answered all questions correctly!
+Based on this excellent performance and the content of the PDF document, provide:
+1. A brief, congratulatory message.
+2. Optionally, suggest one or two advanced topics or further readings related to the document if appropriate.
+`;
+    }
+    feedbackPrompt += `\nRespond with only the feedback text, no JSON, no markdown, just plain text. Be supportive and constructive.`;
+
+    const filePart = { inlineData: { mimeType: pdfMimeType, data: base64PdfData } };
+    const textPart = { text: feedbackPrompt };
+
+    const genAIResponse = await ai.models.generateContent({
+      model: "gemini-2.5-flash-preview-04-17",
+      contents: { parts: [filePart, textPart] },
+       config: {
+        systemInstruction: "You are an API designed to output only plain text feedback. Do not use any markdown.",
+      }
+    });
+
+    res.json({ feedback: genAIResponse.text });
+
+  } catch (error) {
+    console.error('Error in /api/quiz-feedback:', error);
+    let statusCode = 500;
+    let message = 'Failed to generate quiz feedback due to an internal server error.';
+    if (error.message && error.message.includes("API key not valid")) {
+        statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
+    } else if (error.message) message = error.message;
+    res.status(statusCode).json({ error: 'Error processing your quiz feedback request.', details: message });
   }
 });
 

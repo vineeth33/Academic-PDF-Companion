@@ -1,3 +1,4 @@
+
 :root {
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans",
     "Helvetica Neue", sans-serif;
@@ -7,7 +8,7 @@
   --border-radius-sm: 8px;
   --border-radius-md: 12px;
   --border-radius-lg: 20px;
-  --border-radius-xl: 24px; /* Slightly increased for a rounder modern feel */
+  --border-radius-xl: 24px;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -16,119 +17,131 @@
   --spacing-xl: 32px;
   --spacing-xxl: 48px;
 
-  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Standard easing */
+  --transition-fast: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-medium: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-interactive: 0.25s cubic-bezier(0.25, 0.8, 0.25, 1); /* More energetic for interactions */
+  --transition-interactive: 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
 
-
-  /* Light Theme (Default) - GSAP inspired */
+  /* Light Theme (Default) */
   --bg-primary: #ffffff;
-  --bg-secondary: #f7f7f8; /* Slightly softer secondary bg */
-  --bg-tertiary: #f0f0f2; /* Slightly softer tertiary bg */
-  --bg-card: rgba(255, 255, 255, 0.75); /* Slightly less opaque card for better glass */
-  --text-primary: #080808; /* Slightly darker primary text */
+  --bg-secondary: #f7f7f8;
+  --bg-tertiary: #f0f0f2;
+  --bg-card: rgba(255, 255, 255, 0.85); /* Increased opacity slightly for less transparency */
+  --text-primary: #080808;
   --text-secondary: #383838;
   --text-muted: #6c6c6c;
-  --border-primary: rgba(0, 0, 0, 0.07);
-  --border-secondary: rgba(0, 0, 0, 0.10);
+  --border-primary: rgba(0, 0, 0, 0.08); /* Slightly increased border opacity */
+  --border-secondary: rgba(0, 0, 0, 0.12);
 
-  /* GSAP-style gradients */
-  --gradient-primary: linear-gradient(135deg, #6a82fb 0%, #7b53c0 100%); /* Adjusted for richness */
+  --gradient-primary: linear-gradient(135deg, #6a82fb 0%, #7b53c0 100%);
   --gradient-secondary: linear-gradient(135deg, #f2a3fc 0%, #f7687c 100%);
-  --gradient-success: linear-gradient(135deg, #52b0fe 0%, #00e0fe 100%);
-  --gradient-error: linear-gradient(135deg, #fb7fae 0%, #fee350 100%);
-  --gradient-info: linear-gradient(135deg, #b0f0ea 0%, #fed8e5 100%);
-  --gradient-warning: linear-gradient(135deg, #fff0d8 0%, #fcc0a5 100%);
+  --gradient-success-bg: linear-gradient(135deg, rgba(67, 233, 123, 0.15) 0%, rgba(56, 249, 215, 0.15) 100%);
+  --gradient-error-bg: linear-gradient(135deg, rgba(251, 127, 174, 0.15) 0%, rgba(254, 227, 80, 0.15) 100%);
 
-  /* Card gradients array (retained from original) */
-  --card-gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --card-gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --card-gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --card-gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  --card-gradient-5: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  --card-gradient-6: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
 
   --accent-primary: #6a82fb;
   --accent-primary-hover: #5f73e0;
-  --accent-primary-glow: rgba(106, 130, 251, 0.25); /* For input focus glow */
+  --accent-primary-glow: rgba(106, 130, 251, 0.2);
   --accent-secondary: #52b0fe;
   --accent-secondary-hover: #3c9ce0;
-  --accent-error: #fb7fae; /* Use this for error messages in chat */
+  --accent-error: #fb7fae;
   --accent-error-hover: #e7608e;
-  --accent-error-bg: rgba(251, 127, 174, 0.1); /* Background for error messages */
+  --accent-error-bg: rgba(251, 127, 174, 0.1);
+  --accent-success: #43e97b; /* Green for success */
+  --accent-success-hover: #38f9d7;
+  --accent-success-bg: rgba(67, 233, 123, 0.1);
 
 
-  --shadow-color: rgba(0, 0, 0, 0.05);
-  --shadow-color-strong: rgba(0, 0, 0, 0.1);
+  --shadow-color: rgba(0, 0, 0, 0.06); /* Slightly increased shadow intensity */
+  --shadow-color-strong: rgba(0, 0, 0, 0.12);
   --shadow-sm: 0 2px 4px 0 var(--shadow-color), 0 1px 2px -1px var(--shadow-color);
   --shadow-md: 0 5px 10px -2px var(--shadow-color), 0 3px 6px -3px var(--shadow-color);
   --shadow-lg: 0 12px 20px -5px var(--shadow-color-strong), 0 5px 10px -6px var(--shadow-color);
   --shadow-xl: 0 22px 30px -8px var(--shadow-color-strong), 0 10px 15px -8px var(--shadow-color);
-  --shadow-glow: 0 0 15px 0px var(--accent-primary-glow); /* Soft glow shadow */
+  --shadow-glow: 0 0 15px 0px var(--accent-primary-glow);
+  --shadow-success-glow: 0 0 15px 0px rgba(67, 233, 123, 0.3);
+  --shadow-error-glow: 0 0 15px 0px rgba(251, 127, 174, 0.3);
+
 
   --button-text-color: #ffffff;
   --input-bg: var(--bg-primary);
   --input-border: var(--border-primary);
   --link-color: var(--accent-primary);
 
-  /* Chat specific light theme vars */
   --chat-bg-user: var(--accent-primary-glow);
   --chat-text-user: var(--accent-primary-hover);
   --chat-bg-model: var(--bg-tertiary);
   --chat-text-model: var(--text-secondary);
   --chat-bg-error: var(--accent-error-bg);
   --chat-text-error: var(--accent-error);
+
+  /* Specific for quiz options */
+  --quiz-option-correct-border: var(--accent-success);
+  --quiz-option-correct-bg: var(--accent-success-bg);
+  --quiz-option-correct-text: #1e855a; /* Darker green for text on light bg */
+  --quiz-option-incorrect-border: var(--accent-error);
+  --quiz-option-incorrect-bg: var(--accent-error-bg);
+  --quiz-option-incorrect-text: #c72c5c; /* Darker red for text on light bg */
 }
 
 [data-theme="dark"] {
-  --bg-primary: #0f0f0f; /* Darker primary bg */
+  --bg-primary: #0f0f0f;
   --bg-secondary: #141414;
   --bg-tertiary: #1e1e1e;
-  --bg-card: rgba(28, 28, 30, 0.75); /* Darker, slightly more opaque card for glass */
+  --bg-card: rgba(28, 28, 30, 0.85);
   --text-primary: #f5f5f7;
   --text-secondary: #d8d8dc;
   --text-muted: #9e9ea7;
-  --border-primary: rgba(255, 255, 255, 0.12);
-  --border-secondary: rgba(255, 255, 255, 0.18);
+  --border-primary: rgba(255, 255, 255, 0.15); /* Slightly increased */
+  --border-secondary: rgba(255, 255, 255, 0.20); /* Slightly increased */
 
-  /* Dark mode gradients - more vibrant (retained but can be tweaked) */
   --gradient-primary: linear-gradient(135deg, #7089fa 0%, #8b63cf 100%);
   --gradient-secondary: linear-gradient(135deg, #f2a8fb 0%, #f7788c 100%);
-  --gradient-success: linear-gradient(135deg, #60b8fe 0%, #10e8fe 100%);
-  --gradient-error: linear-gradient(135deg, #fb8faf 0%, #fee560 100%);
-  --gradient-info: linear-gradient(135deg, #b8f2eb 0%, #feda_e8 100%);
-  --gradient-warning: linear-gradient(135deg, #fff2da 0%, #fcc8b0 100%);
+  --gradient-success-bg: linear-gradient(135deg, rgba(102, 234, 164, 0.15) 0%, rgba(81, 250, 212, 0.15) 100%);
+  --gradient-error-bg: linear-gradient(135deg, rgba(251, 143, 175, 0.15) 0%, rgba(254, 229, 96, 0.15) 100%);
 
-  --accent-primary: #907cf5; /* More vibrant purple for dark mode */
+  --accent-primary: #907cf5;
   --accent-primary-hover: #7e6ae0;
   --accent-primary-glow: rgba(144, 124, 245, 0.25);
-  --accent-secondary: #25c0e0; /* More vibrant cyan */
+  --accent-secondary: #25c0e0;
   --accent-secondary-hover: #1ca8c0;
-  --accent-error: #f98080; /* Use this for error messages in chat */
+  --accent-error: #f98080;
   --accent-error-hover: #f05050;
-  --accent-error-bg: rgba(249, 128, 128, 0.1); /* Background for error messages */
+  --accent-error-bg: rgba(249, 128, 128, 0.15); /* Slightly more intense for dark mode */
+  --accent-success: #66eaa4;
+  --accent-success-hover: #51fad4;
+  --accent-success-bg: rgba(102, 234, 164, 0.15);
 
-  --shadow-color: rgba(0, 0, 0, 0.25);
-  --shadow-color-strong: rgba(0, 0, 0, 0.45);
+
+  --shadow-color: rgba(0, 0, 0, 0.3); /* Dark mode shadows can be darker */
+  --shadow-color-strong: rgba(0, 0, 0, 0.5);
   --button-text-color: #ffffff;
   --input-bg: var(--bg-tertiary);
   --input-border: var(--border-primary);
   --link-color: var(--accent-primary);
 
-  /* Chat specific dark theme vars */
   --chat-bg-user: var(--accent-primary-glow);
   --chat-text-user: var(--accent-primary-hover);
   --chat-bg-model: var(--bg-tertiary);
   --chat-text-model: var(--text-secondary);
   --chat-bg-error: var(--accent-error-bg);
   --chat-text-error: var(--accent-error);
+
+  /* Specific for quiz options - dark theme */
+  --quiz-option-correct-border: var(--accent-success);
+  --quiz-option-correct-bg: var(--accent-success-bg);
+  --quiz-option-correct-text: #b6f2d2; /* Lighter green for text on dark bg */
+  --quiz-option-incorrect-border: var(--accent-error);
+  --quiz-option-incorrect-bg: var(--accent-error-bg);
+  --quiz-option-incorrect-text: #fca6a6; /* Lighter red for text on dark bg */
 }
 
 * {
   box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+  -webkit-tap-highlight-color: transparent;
 }
+
+html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--font-sans);
@@ -136,13 +149,13 @@ body {
   padding: var(--spacing-lg);
   background: var(--bg-secondary);
   color: var(--text-primary);
-  line-height: 1.65; /* Slightly more spacious line height */
+  line-height: 1.65;
   transition: background var(--transition-medium), color var(--transition-medium);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-size: 16px;
   letter-spacing: -0.01em;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
 }
 
 #root {
@@ -161,15 +174,15 @@ body {
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--spacing-xl);
-  padding: var(--spacing-lg) var(--spacing-xl); /* More padding */
+  padding: var(--spacing-lg) var(--spacing-xl);
   background: var(--bg-card);
-  backdrop-filter: blur(12px); /* Slightly more blur */
+  backdrop-filter: blur(12px);
   border-radius: var(--border-radius-xl);
   border: 1px solid var(--border-primary);
   box-shadow: var(--shadow-md);
-  position: sticky; /* Make header sticky */
+  position: sticky;
   top: var(--spacing-lg);
-  z-index: 100; /* Ensure header is above other content */
+  z-index: 100;
   transition: all var(--transition-medium);
 }
 
@@ -178,15 +191,16 @@ body {
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
-  letter-spacing: -0.025em; /* Tighter letter spacing */
+  letter-spacing: -0.025em;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-fill-color: transparent; /* Standard property */
   transition: transform 0.2s ease-out;
 }
 .app-header h1:hover {
-  transform: scale(1.02); /* Subtle scale on hover */
+  transform: scale(1.02);
 }
 
 
@@ -205,8 +219,8 @@ body {
 }
 
 .theme-toggle:hover {
-  transform: translateY(-3px) scale(1.05); /* More pronounced hover */
-  box-shadow: var(--shadow-lg), var(--shadow-glow); /* Add glow */
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: var(--shadow-lg), var(--shadow-glow);
   border-color: var(--accent-primary);
 }
 
@@ -223,9 +237,9 @@ body {
 
 .main-content {
   display: grid;
-  grid-template-columns: 1fr 400px; /* Maintain original grid */
+  grid-template-columns: 1fr 400px;
   gap: var(--spacing-xl);
-  padding-top: var(--spacing-lg); /* Account for sticky header */
+  padding-top: var(--spacing-lg);
 }
 
 .left-panel {
@@ -236,9 +250,9 @@ body {
 
 .right-panel {
   position: sticky;
-  top: calc(var(--spacing-lg) + 80px); /* Adjust based on header height + spacing */
-  height: calc(100vh - var(--spacing-lg) * 2 - 80px); /* Full viewport height minus padding and header */
-  overflow-y: auto; /* Allow scrolling if content overflows */
+  top: calc(var(--spacing-lg) + 80px + var(--spacing-lg)); /* Header height + top offset + gap */
+  height: calc(100vh - var(--spacing-lg) * 2 - 80px - var(--spacing-lg));
+  overflow-y: auto;
 }
 .right-panel::-webkit-scrollbar {
     width: 8px;
@@ -259,7 +273,7 @@ body {
   padding: var(--spacing-xl);
   border: 1px solid var(--border-primary);
   box-shadow: var(--shadow-md);
-  height: 100%; /* Make it fill the right panel height */
+  height: 100%;
   display: flex;
   flex-direction: column;
 }
@@ -276,7 +290,7 @@ body {
   border-radius: var(--border-radius-md);
   overflow: hidden;
   border: 1px solid var(--border-primary);
-  flex-grow: 1; /* Allow iframe to take remaining space */
+  flex-grow: 1;
 }
 
 .pdf-viewer iframe {
@@ -284,25 +298,25 @@ body {
   border-radius: var(--border-radius-md);
   display: block;
   width: 100%;
-  height: 100%; /* Make iframe fill its container */
+  height: 100%;
 }
 
 .pdf-preview-placeholder {
   display: flex;
-  flex-direction: column; /* Stack icon and text */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 600px;
   background: var(--bg-tertiary);
-  border-radius: var(--border-radius-xl); /* Match card radius */
-  border: 2px dashed var(--border-secondary); /* Softer dashed border */
+  border-radius: var(--border-radius-xl);
+  border: 2px dashed var(--border-secondary);
   color: var(--text-muted);
   font-style: italic;
   padding: var(--spacing-xl);
   text-align: center;
-  flex-grow: 1; /* Allow placeholder to take space */
+  flex-grow: 1;
 }
-.pdf-preview-placeholder::before { /* Add a placeholder icon */
+.pdf-preview-placeholder::before {
   content: '📄';
   font-size: 3rem;
   margin-bottom: var(--spacing-md);
@@ -346,8 +360,8 @@ body {
 }
 
 .export-button:hover {
-  transform: translateY(-3px) scale(1.03); /* Enhanced hover */
-  box-shadow: var(--shadow-lg), 0 0 20px rgba(245, 87, 108, 0.3); /* Color hint from gradient */
+  transform: translateY(-3px) scale(1.03);
+  box-shadow: var(--shadow-lg), 0 0 20px rgba(245, 87, 108, 0.3);
 }
 .export-button:active {
   transform: translateY(-1px) scale(1.01);
@@ -379,14 +393,14 @@ body {
   box-shadow: var(--shadow-md);
   transition: all var(--transition-medium);
   position: relative;
-  overflow: hidden; /* Important for pseudo-elements if added */
+  overflow: hidden;
   will-change: transform, box-shadow;
 }
 
 .card:hover {
-  transform: translateY(-6px); /* More lift */
+  transform: translateY(-6px);
   box-shadow: var(--shadow-xl);
-  border-color: rgba(var(--accent-primary), 0.3); /* Subtle accent border on hover */
+  border-color: color-mix(in srgb, var(--accent-primary) 30%, transparent);
 }
 
 .form-section {
@@ -432,9 +446,9 @@ body {
 
 .form-group input[type="file"] {
   padding: var(--spacing-md);
-  background: var(--bg-tertiary); /* Different bg for file input */
+  background: var(--bg-tertiary);
 }
-.form-group input[type="file"]::file-selector-button { /* Style the button inside file input */
+.form-group input[type="file"]::file-selector-button {
   padding: var(--spacing-sm) var(--spacing-md);
   border: 1px solid var(--border-secondary);
   border-radius: var(--border-radius-sm);
@@ -442,7 +456,7 @@ body {
   color: var(--accent-primary);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color var(--transition-fast);
+  transition: background-color var(--transition-fast), border-color var(--transition-fast);
   margin-right: var(--spacing-md);
 }
 .form-group input[type="file"]::file-selector-button:hover {
@@ -457,13 +471,12 @@ body {
   line-height: 1.5;
 }
 
-.form-group input:focus,
+.form-group input:not([type="file"]):not([type="checkbox"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px var(--accent-primary-glow), var(--shadow-sm); /* Add glow and subtle shadow */
-  transform: translateY(0); /* Keep it from shifting due to other :hover styles */
+  box-shadow: 0 0 0 3px var(--accent-primary-glow), var(--shadow-sm);
 }
 
 .checkbox-options-grid {
@@ -482,10 +495,7 @@ body {
 }
 
 .checkbox-group:hover {
-  background-color: rgba(var(--accent-primary-raw, 106, 130, 251), 0.05); /* Use accent glow with fallback */
-}
-[data-theme="dark"] .checkbox-group:hover {
-  background-color: rgba(var(--accent-primary-raw-dark, 144, 124, 245), 0.1);
+  background-color: color-mix(in srgb, var(--accent-primary) 5%, transparent);
 }
 
 
@@ -499,17 +509,36 @@ body {
 }
 
 .form-group input[type="checkbox"] {
-  height: 1.3em; /* Slightly larger checkbox */
+  height: 1.3em;
   width: 1.3em;
   accent-color: var(--accent-primary);
   cursor: pointer;
-  border-radius: var(--border-radius-sm);
-  margin-top: 2px; /* Align better with label */
+  border-radius: 4px; /* Slightly less round for checkbox */
+  margin-top: 2px;
   border: 1px solid var(--border-secondary);
   transition: all var(--transition-fast);
+  appearance: none; /* For custom styling */
+  -webkit-appearance: none;
+  background-color: var(--input-bg);
+  position: relative;
 }
 .form-group input[type="checkbox"]:checked {
-  transform: scale(1.1);
+  background-color: var(--accent-primary);
+  border-color: var(--accent-primary);
+}
+.form-group input[type="checkbox"]:checked::before {
+  content: '✔';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--button-text-color);
+  font-size: 0.9em;
+  font-weight: bold;
+}
+.form-group input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 
 
@@ -525,7 +554,7 @@ body {
 
 .submit-button {
   background: var(--gradient-primary);
-  background-size: 200% 200%; /* For gradient animation */
+  background-size: 200% 200%;
   color: var(--button-text-color);
   padding: var(--spacing-lg) var(--spacing-xl);
   border: none;
@@ -536,7 +565,7 @@ body {
   transition: all var(--transition-interactive), background-position 0.5s ease-in-out;
   width: 100%;
   margin-top: var(--spacing-xl);
-  box-shadow: var(--shadow-md), 0 4px 15px 0 rgba(106,130,251,0.3); /* Gradient related shadow */
+  box-shadow: var(--shadow-md), 0 4px 15px 0 color-mix(in srgb, var(--accent-primary) 30%, transparent);
   letter-spacing: -0.01em;
   position: relative;
   overflow: hidden;
@@ -545,8 +574,8 @@ body {
 
 .submit-button:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.02);
-  box-shadow: var(--shadow-lg), 0 6px 20px 0 rgba(106,130,251,0.4);
-  background-position: right center; /* Animate gradient on hover */
+  box-shadow: var(--shadow-lg), 0 6px 20px 0 color-mix(in srgb, var(--accent-primary) 40%, transparent);
+  background-position: right center;
 }
 
 .submit-button:active:not(:disabled) {
@@ -580,39 +609,49 @@ body {
   border-radius: var(--border-radius-lg);
   backdrop-filter: blur(12px);
   border: 1px solid var(--border-primary);
-  display: flex; /* For spinner alignment */
+  display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
 }
+.loading-message.small-loading {
+  padding: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  font-size: 0.95rem;
+}
+.loading-message.small-loading .spinner {
+  width: 24px;
+  height: 24px;
+  margin-bottom: var(--spacing-sm);
+}
+
 
 .loading-message {
-  background: linear-gradient(135deg, var(--accent-primary-glow) 0%, rgba(118, 75, 162, 0.1) 100%);
+  background: linear-gradient(135deg, var(--accent-primary-glow) 0%, color-mix(in srgb, var(--accent-primary) 10%, transparent) 100%);
   color: var(--accent-primary);
 }
 
 .error-message {
-  background: linear-gradient(135deg, rgba(250, 112, 154, 0.15) 0%, rgba(254, 225, 64, 0.15) 100%);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-error) 15%, transparent) 0%, color-mix(in srgb, var(--accent-error) 10%, transparent) 100%);
   color: var(--accent-error);
 }
-.error-message.chat-error { /* Specific styling for chat errors shown within the chat UI */
+.error-message.chat-error {
   padding: var(--spacing-md);
   font-size: 0.9em;
-  margin: var(--spacing-md) auto 0; /* Center it below input */
+  margin: var(--spacing-md) auto 0;
   max-width: 100%;
 }
 
-
-.response-section .card h3 { /* Specific to response cards */
+.response-section .card h3 {
   color: var(--text-primary);
-  font-size: 1.6rem; /* Slightly larger */
+  font-size: 1.6rem;
   font-weight: 700;
   margin-top: 0;
   margin-bottom: var(--spacing-lg);
   padding-bottom: var(--spacing-md);
   border-bottom: 2px solid transparent;
   background: var(--gradient-primary);
-  background-size: 100% 3px; /* Thicker underline */
+  background-size: 100% 3px;
   background-repeat: no-repeat;
   background-position: bottom;
   letter-spacing: -0.015em;
@@ -623,7 +662,7 @@ body {
 .response-section li {
   margin-bottom: var(--spacing-md);
   color: var(--text-secondary);
-  line-height: 1.7; /* More readable line height for content */
+  line-height: 1.7;
 }
 
 .response-section ul {
@@ -632,20 +671,20 @@ body {
 }
 
 .response-section ul li::before {
-  content: "✦"; /* Changed bullet */
+  content: "✦";
   color: var(--accent-primary);
   font-weight: bold;
   font-size: 0.9em;
-  width: 1.5em; /* Adjust spacing */
+  width: 1.5em;
   margin-left: -1.5em;
   position: absolute;
-  top: 2px;
+  top: 2px; /* Adjust as needed */
 }
 
 .response-section ul li {
   position: relative;
   margin-bottom: var(--spacing-sm);
-  padding-left: var(--spacing-xs); /* Give space for new bullet */
+  padding-left: var(--spacing-xs);
 }
 
 .glossary-list {
@@ -664,7 +703,7 @@ body {
 }
 
 .glossary-item:hover {
-  transform: translateY(-4px) scale(1.01); /* Hover effect */
+  transform: translateY(-4px) scale(1.01);
   box-shadow: var(--shadow-lg);
   border-left: 4px solid var(--accent-primary);
 }
@@ -678,11 +717,12 @@ body {
   color: var(--text-primary);
   font-weight: 700;
   margin-bottom: var(--spacing-sm);
-  font-size: 1.15rem; /* Slightly larger term */
+  font-size: 1.15rem;
   background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-fill-color: transparent;
 }
 .page-explanation-item {
   margin-bottom: 1.5rem;
@@ -696,7 +736,7 @@ body {
 .page-explanation-item:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow: var(--shadow-lg);
-  border-left: 4px solid var(--accent-secondary); /* Different accent */
+  border-left: 4px solid var(--accent-secondary);
 }
 .page-explanation-item:last-child {
   margin-bottom: 0;
@@ -705,16 +745,20 @@ body {
   margin-top:0;
   margin-bottom: var(--spacing-md);
   color: var(--text-primary);
-  font-size: 1.25em; /* Increased from 1.1em */
-  font-weight: 700; /* Added for emphasis */
-  background: var(--gradient-secondary); /* Use a different gradient */
+  font-size: 1.25em;
+  font-weight: 700;
+  background: var(--gradient-secondary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-fill-color: transparent;
 }
 
+/* Quiz Specific Styles */
+.quiz-section.card {
+  /* Can add specific padding or margin if needed for the whole quiz section */
+}
 
-/* GSAP-style Quiz Cards */
 .quiz-item {
   margin-bottom: var(--spacing-xl);
   padding: var(--spacing-xl);
@@ -722,49 +766,201 @@ body {
   position: relative;
   overflow: hidden;
   transition: all var(--transition-medium);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px); /* Softer blur for quiz items */
   border: 1px solid var(--border-primary);
-  will-change: transform, box-shadow;
+  will-change: transform, box-shadow, background; /* Added background */
 }
 
-/* Gradient backgrounds for quiz items (retained) */
-.quiz-item:nth-child(6n + 1) { background: linear-gradient(135deg, rgba(106, 130, 251, 0.12) 0%, rgba(123, 83, 192, 0.12) 100%); }
-.quiz-item:nth-child(6n + 2) { background: linear-gradient(135deg, rgba(242, 163, 252, 0.12) 0%, rgba(247, 104, 124, 0.12) 100%); }
-.quiz-item:nth-child(6n + 3) { background: linear-gradient(135deg, rgba(82, 176, 254, 0.12) 0%, rgba(0, 224, 254, 0.12) 100%); }
-.quiz-item:nth-child(6n + 4) { background: linear-gradient(135deg, rgba(67, 233, 123, 0.12) 0%, rgba(56, 249, 215, 0.12) 100%); }
-.quiz-item:nth-child(6n + 5) { background: linear-gradient(135deg, rgba(251, 127, 174, 0.12) 0%, rgba(254, 227, 80, 0.12) 100%); }
-.quiz-item:nth-child(6n + 6) { background: linear-gradient(135deg, rgba(176, 240, 234, 0.12) 0%, rgba(254, 216, 229, 0.12) 100%); }
+/* Slightly more vibrant gradients for quiz items */
+.quiz-item:nth-child(6n + 1) { background: linear-gradient(135deg, color-mix(in srgb, var(--accent-primary) 15%, transparent) 0%, color-mix(in srgb, #7b53c0 15%, transparent) 100%); }
+.quiz-item:nth-child(6n + 2) { background: linear-gradient(135deg, color-mix(in srgb, #f2a3fc 15%, transparent) 0%, color-mix(in srgb, #f7687c 15%, transparent) 100%); }
+.quiz-item:nth-child(6n + 3) { background: linear-gradient(135deg, color-mix(in srgb, var(--accent-secondary) 15%, transparent) 0%, color-mix(in srgb, #00e0fe 15%, transparent) 100%); }
+.quiz-item:nth-child(6n + 4) { background: var(--gradient-success-bg); } /* Use success gradient */
+.quiz-item:nth-child(6n + 5) { background: var(--gradient-error-bg); }   /* Use error gradient */
+.quiz-item:nth-child(6n + 6) { background: linear-gradient(135deg, color-mix(in srgb, #a8edea 15%, transparent) 0%, color-mix(in srgb, #fed6e3 15%, transparent) 100%); }
 
-.quiz-item:hover { transform: translateY(-6px) scale(1.01); box-shadow: var(--shadow-xl); }
+
+.quiz-item:hover {
+  transform: translateY(-6px) scale(1.015); /* Slightly more pronounced */
+  box-shadow: var(--shadow-xl);
+}
 .quiz-item:last-child { margin-bottom: 0; }
 
 .quiz-question {
-  font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-lg);
-  font-size: 1.25rem; line-height: 1.45; letter-spacing: -0.01em;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: var(--spacing-lg);
+  font-size: 1.3rem; /* Slightly larger question text */
+  line-height: 1.45;
+  letter-spacing: -0.015em; /* Tighter spacing */
+}
+.quiz-question strong { /* If Q1: prefix is still used */
+  color: var(--accent-primary);
 }
 
-.quiz-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--spacing-md); margin-bottom: var(--spacing-lg); }
+.quiz-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Slightly wider min option width */
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
 
 .quiz-option-button {
-  padding: var(--spacing-md) var(--spacing-lg); border: 1px solid var(--border-secondary); border-radius: var(--border-radius-md);
-  background: var(--bg-card); color: var(--text-secondary); cursor: pointer; text-align: left;
-  font-size: 1rem; font-weight: 500; transition: all var(--transition-interactive);
-  backdrop-filter: blur(10px); position: relative; overflow: hidden;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid var(--border-secondary); /* Thicker base border */
+  border-radius: var(--border-radius-md);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all var(--transition-interactive);
+  backdrop-filter: blur(8px); /* Softer blur for buttons */
+  position: relative;
+  overflow: hidden;
   will-change: transform, box-shadow, border-color, color, background;
+  display: flex; /* For icon alignment */
+  align-items: center;
+  justify-content: space-between; /* Pushes icon to the right */
 }
-.quiz-option-button:hover:not(:disabled) {
-  border-color: var(--accent-primary); color: var(--accent-primary); background: var(--accent-primary-glow);
-  transform: translateY(-3px) scale(1.02); box-shadow: var(--shadow-md);
-}
-.quiz-option-button.correct { background: linear-gradient(135deg, rgba(82, 176, 254, 0.25) 0%, rgba(0, 224, 254, 0.25) 100%); border-color: var(--accent-secondary); color: var(--accent-secondary-hover); font-weight: 600; box-shadow: var(--shadow-md); }
-.quiz-option-button.incorrect { background: linear-gradient(135deg, rgba(251, 127, 174, 0.25) 0%, rgba(254, 227, 80, 0.25) 100%); border-color: var(--accent-error); color: var(--accent-error-hover); font-weight: 600; box-shadow: var(--shadow-md); }
-.quiz-option-button:disabled, .quiz-option-button.disabled { opacity: 0.65; cursor: not-allowed; background: var(--bg-tertiary); border-color: var(--border-primary); color: var(--text-muted); transform: none; box-shadow: none;}
-.quiz-option-button.correct:disabled, .quiz-option-button.incorrect:disabled { opacity: 1; }
 
-.quiz-answer { font-style: italic; color: var(--text-muted); margin-top: var(--spacing-md); line-height: 1.5; }
-.short-answer-container .quiz-answer { padding: var(--spacing-lg); background: var(--bg-tertiary); border-radius: var(--border-radius-md); border: 1px solid var(--border-primary); }
-.quiz-feedback { font-size: 0.95rem; color: var(--text-muted); margin-top: var(--spacing-md); padding: var(--spacing-md); background: var(--accent-primary-glow); border-radius: var(--border-radius-sm); border-left: 3px solid var(--accent-primary); }
-.quiz-feedback strong { color: var(--accent-secondary); font-weight: 600; }
+.quiz-option-button::after { /* For checkmark/cross icons */
+  content: '';
+  font-weight: bold;
+  font-size: 1.2em;
+  margin-left: var(--spacing-sm);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+
+.quiz-option-button:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  background: var(--accent-primary-glow);
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: var(--shadow-md);
+}
+
+/* Correct and Selected */
+.quiz-option-button.correct.selected {
+  background: var(--quiz-option-correct-bg);
+  border-color: var(--quiz-option-correct-border);
+  color: var(--quiz-option-correct-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-md), var(--shadow-success-glow);
+}
+.quiz-option-button.correct.selected::after {
+  content: '✔';
+  color: var(--quiz-option-correct-border);
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Incorrect and Selected */
+.quiz-option-button.incorrect.selected {
+  background: var(--quiz-option-incorrect-bg);
+  border-color: var(--quiz-option-incorrect-border);
+  color: var(--quiz-option-incorrect-text);
+  font-weight: 600;
+  box-shadow: var(--shadow-md), var(--shadow-error-glow);
+}
+.quiz-option-button.incorrect.selected::after {
+  content: '✖';
+  color: var(--quiz-option-incorrect-border);
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Just Correct (not selected by user, but revealed as correct) */
+.quiz-option-button.correct:not(.selected) {
+  border-color: var(--quiz-option-correct-border);
+  color: var(--quiz-option-correct-text);
+  background: color-mix(in srgb, var(--quiz-option-correct-bg) 50%, transparent); /* More subtle indication */
+}
+.quiz-option-button.correct:not(.selected)::after {
+  content: '✔'; /* Still show check if it's the correct answer */
+  color: var(--quiz-option-correct-border);
+   opacity: 0.7; /* Slightly less prominent if not user selected */
+  transform: scale(0.9);
+}
+
+
+.quiz-option-button:disabled,
+.quiz-option-button.disabled {
+  opacity: 0.7; /* Slightly more visible when disabled */
+  cursor: not-allowed;
+  background: var(--bg-tertiary);
+  border-color: var(--border-primary);
+  color: var(--text-muted);
+  transform: none;
+  box-shadow: none;
+}
+/* Ensure correct/incorrect selected styles persist when disabled */
+.quiz-option-button.correct.selected:disabled,
+.quiz-option-button.incorrect.selected:disabled,
+.quiz-option-button.correct:not(.selected):disabled {
+  opacity: 1; /* Keep full opacity for result indication */
+}
+.quiz-option-button.correct:not(.selected):disabled::after {
+    opacity: 0.7; transform: scale(0.9);
+}
+
+
+.quiz-answer {
+  font-style: italic;
+  color: var(--text-muted);
+  margin-top: var(--spacing-md);
+  line-height: 1.5;
+}
+.short-answer-container .quiz-answer {
+  padding: var(--spacing-lg);
+  background: var(--bg-tertiary);
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-primary);
+}
+.quiz-feedback { /* Feedback for individual wrong answer */
+  font-size: 0.95rem;
+  color: var(--text-secondary); /* More neutral color */
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--accent-primary-glow);
+  border-radius: var(--border-radius-sm);
+  border-left: 4px solid var(--accent-primary);
+  line-height: 1.5;
+}
+
+/* Overall Quiz Feedback Card */
+.quiz-overall-feedback.card {
+  margin-top: var(--spacing-xl);
+  padding: var(--spacing-xl);
+  border-left: 5px solid var(--accent-secondary); /* Distinct border */
+  background: linear-gradient(135deg, color-mix(in srgb, var(--accent-secondary) 10%, transparent) 0%, color-mix(in srgb, var(--accent-secondary) 5%, transparent) 100%);
+}
+.quiz-overall-feedback h4 {
+  font-size: 1.4rem;
+  color: var(--text-primary);
+  margin-top: 0;
+  margin-bottom: var(--spacing-md);
+  font-weight: 700;
+  background: var(--gradient-secondary); /* Use secondary gradient for this header */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+  padding-bottom: var(--spacing-xs);
+  border-bottom: none; /* Remove underline from main card h3 style */
+  background-size: auto; /* Reset from main card h3 */
+}
+.quiz-overall-feedback p {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+
+
 
 .reading-suggestions-list { list-style-type: none; padding-left: 0; }
 .reading-suggestions-list li {
@@ -772,21 +968,31 @@ body {
   border-radius: var(--border-radius-sm); border-left: 3px solid var(--accent-primary);
   transition: all var(--transition-interactive); position: relative; will-change: transform, background;
 }
-.reading-suggestions-list li:hover { transform: translateX(6px) scale(1.01); background: var(--accent-primary-glow); color: var(--accent-primary); }
-.reading-suggestions-list li::before { content: "→"; color: var(--accent-primary); font-weight: bold; margin-right: var(--spacing-sm); transition: color var(--transition-fast); }
+.reading-suggestions-list li:hover {
+  transform: translateX(6px) scale(1.01);
+  background: var(--accent-primary-glow);
+  color: var(--accent-primary);
+}
+.reading-suggestions-list li::before {
+  content: "→";
+  color: var(--accent-primary);
+  font-weight: bold;
+  margin-right: var(--spacing-sm);
+  transition: color var(--transition-fast);
+}
 .reading-suggestions-list li:hover::before { color: var(--accent-primary-hover); }
 
 
 .spinner {
-  border: 4px solid var(--accent-primary-glow); /* Softer border */
+  border: 4px solid var(--accent-primary-glow);
   border-top: 4px solid var(--accent-primary);
   border-radius: 50%;
   width: 40px;
   height: 40px;
-  animation: spin 0.8s cubic-bezier(0.65, 0, 0.35, 1) infinite; /* Faster, smoother spin */
+  animation: spin 0.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
   margin: var(--spacing-lg) auto;
 }
-.spinner.small-spinner { /* For chat loading indicator */
+.spinner.small-spinner {
   width: 20px;
   height: 20px;
   border-width: 3px;
@@ -834,21 +1040,21 @@ body {
 }
 .chat-message p {
   margin: 0;
-  white-space: pre-wrap; /* Respect newlines in AI responses */
+  white-space: pre-wrap;
 }
 
 .chat-message.user-message {
   background-color: var(--chat-bg-user);
   color: var(--chat-text-user);
   align-self: flex-end;
-  border-bottom-right-radius: var(--border-radius-sm); /* Bubble tail */
+  border-bottom-right-radius: var(--border-radius-sm);
 }
 
 .chat-message.model-message {
   background-color: var(--chat-bg-model);
   color: var(--chat-text-model);
   align-self: flex-start;
-  border-bottom-left-radius: var(--border-radius-sm); /* Bubble tail */
+  border-bottom-left-radius: var(--border-radius-sm);
 }
 .chat-message.system_error-message {
   background-color: var(--chat-bg-error);
@@ -926,29 +1132,50 @@ body {
 /* Responsive Design */
 @media (max-width: 1024px) {
   .main-content { grid-template-columns: 1fr; }
-  .right-panel { position: static; height: auto; max-height: 70vh; overflow-y: auto; }
+  .right-panel {
+    position: static;
+    height: auto;
+    max-height: 70vh; /* Ensure it doesn't take full screen */
+    overflow-y: auto;
+    margin-top: var(--spacing-xl); /* Add space when it stacks */
+   }
   .pdf-preview-placeholder { min-height: 400px; }
 }
 
 @media (max-width: 768px) {
   body { padding: var(--spacing-md); }
-  .app-header { padding: var(--spacing-md) var(--spacing-lg); flex-direction: column; gap: var(--spacing-sm); position: static; }
+  .app-header {
+    padding: var(--spacing-md) var(--spacing-lg);
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    position: static; /* Header no longer sticky on small screens */
+  }
   .app-header h1 { font-size: 2rem; }
-  .main-content { padding-top: 0; }
+  .main-content { padding-top: 0; } /* Reset padding as header is static */
   .form-grid { grid-template-columns: 1fr; gap: var(--spacing-lg); }
-  .quiz-options { grid-template-columns: 1fr; }
+  .quiz-options { grid-template-columns: 1fr; } /* Stack quiz options on small screens */
   .checkbox-options-grid { grid-template-columns: 1fr; }
   .export-buttons { gap: var(--spacing-sm); }
 
-  .chat-message { max-width: 90%; } /* Allow chat bubbles to be a bit wider on small screens */
+  .chat-message { max-width: 90%; }
 }
 
 /* Focus indicators for accessibility */
 *:focus-visible {
-  outline: 3px solid var(--accent-primary); /* More prominent focus */
-  outline-offset: 3px;
-  box-shadow: var(--shadow-glow); /* Add glow to focused elements */
+  outline: 3px solid var(--accent-primary) !important; /* Important to override browser defaults */
+  outline-offset: 2px !important;
+  box-shadow: var(--shadow-glow) !important;
+}
+/* Specific focus for quiz options for better visual */
+.quiz-option-button:focus-visible {
+  border-color: var(--accent-primary) !important;
+  box-shadow: 0 0 0 3px var(--accent-primary-glow), var(--shadow-md) !important;
 }
 
-/* Smooth scrolling */
-html { scroll-behavior: smooth; }
+/* Custom checkbox focus */
+.form-group input[type="checkbox"]:focus-visible {
+  outline: 2px solid var(--accent-primary) !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--accent-primary-glow) !important;
+}
+
