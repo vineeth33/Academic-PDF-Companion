@@ -9,11 +9,43 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3001;
 
-app.use(cors());
+// More explicit CORS configuration
+const allowedOrigins = [
+  'http://localhost:3000', // Common React dev port
+  'http://localhost:5173', // Common Vite/Next.js dev port
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:5173',
+  'https://academic-pdf-companion.vercel.app' // << ADDED YOUR DEPLOYED FRONTEND URL
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+
+    // Allow backend's own origin (e.g., for health checks by Render)
+    if (origin === 'https://academic-pdf-companion.onrender.com') {
+        return callback(null, true);
+    }
+
+    // Check if the incoming origin is in our allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // If not allowed
+    const msg = `The CORS policy for this site does not allow access from the specified Origin: ${origin}`;
+    return callback(new Error(msg), false);
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // If you use cookies/sessions or authorization headers
+}));
+
 app.use(express.json({ limit: '50mb' }));
 
 if (!process.env.API_KEY) {
-  console.error("FATAL ERROR: API_KEY is not defined in the environment variables. Please create a .env file in the 'backend' directory with your API_KEY.");
+  console.error("FATAL ERROR: API_KEY is not defined in the environment variables. Please check your Render environment settings.");
   process.exit(1);
 }
 
@@ -94,9 +126,13 @@ Specifically for "quiz.options": this MUST be an array of strings, where each st
     console.error('Error in /api/analyze-pdf:', error);
     let statusCode = 500;
     let message = 'Failed to analyze PDF due to an internal server error.';
-    if (error.message && error.message.includes("API key not valid")) {
-        statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
-    } else if (error.message) message = error.message;
+    if (error instanceof Error) {
+        if (error.message && error.message.includes("API key not valid")) {
+            statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
+        } else if (error.message) {
+          message = error.message;
+        }
+    }
     res.status(statusCode).json({ error: 'Error processing your request via backend.', details: message });
   }
 });
@@ -138,9 +174,13 @@ app.post('/api/follow-up-chat', async (req, res) => {
     console.error('Error in /api/follow-up-chat:', error);
     let statusCode = 500;
     let message = 'Failed to get chat follow-up due to an internal server error.';
-     if (error.message && error.message.includes("API key not valid")) {
-        statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
-    } else if (error.message) message = error.message;
+    if (error instanceof Error) {
+      if (error.message && error.message.includes("API key not valid")) {
+          statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
+      } else if (error.message) {
+        message = error.message;
+      }
+    }
     res.status(statusCode).json({ error: 'Error processing your chat follow-up.', details: message });
   }
 });
@@ -200,14 +240,18 @@ Based on this excellent performance and the content of the PDF document, provide
     console.error('Error in /api/quiz-feedback:', error);
     let statusCode = 500;
     let message = 'Failed to generate quiz feedback due to an internal server error.';
-    if (error.message && error.message.includes("API key not valid")) {
-        statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
-    } else if (error.message) message = error.message;
+    if (error instanceof Error) {
+      if (error.message && error.message.includes("API key not valid")) {
+          statusCode = 401; message = "Gemini API key is not valid or missing on the server.";
+      } else if (error.message) {
+        message = error.message;
+      }
+    }
     res.status(statusCode).json({ error: 'Error processing your quiz feedback request.', details: message });
   }
 });
 
 
-app.listen(port, () => {
-  console.log(`Backend server listening at http://localhost:${port}`);
+app.listen(port, '0.0.0.0', () => { // Ensure listening on all interfaces for Render
+  console.log(`Backend server listening at http://0.0.0.0:${port}`);
 });
