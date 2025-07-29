@@ -6,8 +6,8 @@
  */
 import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google"
 import jsPDF from "jspdf"
-import React, { useCallback, useEffect, useRef, useState } from "react"
-import ReactDOM from "react-dom/client"
+import type React from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 // IMPORTANT: Replace with your actual Google Client ID
 const GOOGLE_CLIENT_ID = "520295613669-1p3cov5p9c0c2a01sv0ktmhn4c288vbc.apps.googleusercontent.com"
@@ -484,15 +484,19 @@ function App() {
   }
 
   const handleGoogleLoginSuccess = async (credentialResponse: any) => {
-    console.log("Google login success, credential response:", credentialResponse)
+    console.log("=== Google Login Success ===")
+    console.log("Credential response:", credentialResponse)
     setIsAuthLoading(true)
     setAuthError(null)
+
     try {
       if (!credentialResponse.credential) {
         throw new Error("Google Sign-In failed: No credential received.")
       }
 
-      console.log("Sending request to backend for Google verification...")
+      console.log("Sending request to backend...")
+      console.log("Backend URL:", `${authBackendUrl}/google/verify`)
+
       const response = await fetch(`${authBackendUrl}/google/verify`, {
         method: "POST",
         headers: {
@@ -502,15 +506,48 @@ function App() {
         body: JSON.stringify({ token: credentialResponse.credential }),
       })
 
-      console.log("Backend response status:", response.status)
-      const data = await response.json()
-      console.log("Backend response data:", data)
+      console.log("Response status:", response.status)
+      console.log("Response headers:", response.headers)
 
-      if (!response.ok) throw new Error(data.message || "Google Sign-In verification failed")
+      // Check if response is actually JSON
+      const contentType = response.headers.get("content-type")
+      console.log("Content-Type:", contentType)
+
+      if (!contentType || !contentType.includes("application/json")) {
+        // If it's not JSON, get the text to see what we actually received
+        const responseText = await response.text()
+        console.error("Expected JSON but received:", responseText.substring(0, 500))
+        throw new Error(
+          `Server returned non-JSON response. Status: ${response.status}. Content: ${responseText.substring(0, 100)}...`,
+        )
+      }
+
+      const data = await response.json()
+      console.log("Response data:", data)
+
+      if (!response.ok) {
+        throw new Error(data.message || data.error || "Google Sign-In verification failed")
+      }
+
+      console.log("Authentication successful!")
       handleAuthSuccess(data.token, data.user)
     } catch (err: any) {
-      console.error("Google Sign-In Error:", err)
-      setAuthError(`Google Sign-In Error: ${err.message}`)
+      console.error("=== Google Sign-In Error ===")
+      console.error("Error:", err)
+      console.error("Error message:", err.message)
+      console.error("Error stack:", err.stack)
+
+      let errorMessage = "Google Sign-In failed. Please try again."
+      if (err.message.includes("<!DOCTYPE")) {
+        errorMessage =
+          "Server is returning HTML instead of JSON. Please check if the backend server is running correctly."
+      } else if (err.message.includes("Failed to fetch")) {
+        errorMessage = "Cannot connect to server. Please check if the backend is running."
+      } else if (err.message) {
+        errorMessage = err.message
+      }
+
+      setAuthError(`Google Sign-In Error: ${errorMessage}`)
       setCurrentUser(null)
       localStorage.removeItem("authToken")
       setToken(null)
@@ -520,7 +557,8 @@ function App() {
   }
 
   const handleGoogleLoginError = (error?: any) => {
-    console.error("Google Sign-In Error:", error)
+    console.error("=== Google Sign-In Error (from Google) ===")
+    console.error("Error:", error)
     setAuthError("Google Sign-In failed. Please try again.")
     setIsAuthLoading(false)
   }
@@ -534,6 +572,23 @@ function App() {
     setAuthError(null)
     resetAnalysisState()
   }
+
+  // Test backend connectivity
+  const testBackendConnection = async () => {
+    try {
+      console.log("Testing backend connection...")
+      const response = await fetch(`${backendBaseUrl}/health`)
+      const data = await response.json()
+      console.log("Backend health check:", data)
+    } catch (err) {
+      console.error("Backend connection test failed:", err)
+    }
+  }
+
+  // Test on component mount
+  useEffect(() => {
+    testBackendConnection()
+  }, [])
 
   const exportSummaryAsPDF = () => {
     if (!apiResponse) return
@@ -1804,14 +1859,4 @@ function App() {
   )
 }
 
-const rootElement = document.getElementById("root")
-if (rootElement) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>,
-  )
-} else {
-  console.error("Root element not found")
-}
+export default App

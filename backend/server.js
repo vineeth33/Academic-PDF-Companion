@@ -1,8 +1,8 @@
-import { GoogleGenAI } from "@google/genai"
+import { GoogleGenAI } from "@google/genai";
 import bcrypt from "bcryptjs"; // For password hashing
-import cors from "cors"
-import dotenv from "dotenv"
-import express from "express"
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
 import { OAuth2Client } from "google-auth-library"; // For Google Sign-In
 import jwt from "jsonwebtoken"; // For JWT
 
@@ -56,6 +56,16 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "50mb" }))
 
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`)
+  if (req.url.includes("/auth/")) {
+    console.log("Auth request headers:", req.headers)
+    console.log("Auth request body:", req.body)
+  }
+  next()
+})
+
 if (!process.env.API_KEY) {
   console.error(
     "FATAL ERROR: API_KEY is not defined in the environment variables. Please create a .env file with your API_KEY.",
@@ -105,8 +115,19 @@ const authenticateToken = (req, res, next) => {
   })
 }
 
+// Add a health check endpoint
+app.get("/health", (req, res) => {
+  res.json({ status: "OK", timestamp: new Date().toISOString() })
+})
+
+// Add a test endpoint to verify server is working
+app.get("/test", (req, res) => {
+  res.json({ message: "Server is working", timestamp: new Date().toISOString() })
+})
+
 // --- Auth Routes ---
 app.post("/auth/register", async (req, res) => {
+  console.log("Register endpoint hit")
   try {
     const { username, password } = req.body
     if (!username || !password) {
@@ -140,6 +161,7 @@ app.post("/auth/register", async (req, res) => {
 })
 
 app.post("/auth/login", async (req, res) => {
+  console.log("Login endpoint hit")
   try {
     const { username, password } = req.body
     const user = users.find((u) => u.username === username || u.email === username)
@@ -165,7 +187,14 @@ app.post("/auth/login", async (req, res) => {
 
 // Fix the Google auth endpoint path and add proper error handling
 app.post("/auth/google/verify", async (req, res) => {
-  console.log("Google verify endpoint hit:", req.method, req.url)
+  console.log("=== Google verify endpoint hit ===")
+  console.log("Method:", req.method)
+  console.log("URL:", req.url)
+  console.log("Headers:", req.headers)
+  console.log("Body:", req.body)
+
+  // Ensure we always return JSON
+  res.setHeader("Content-Type", "application/json")
 
   if (!GOOGLE_CLIENT_ID) {
     console.error("/auth/google/verify called, but GOOGLE_CLIENT_ID is not configured on the server.")
@@ -173,9 +202,11 @@ app.post("/auth/google/verify", async (req, res) => {
       .status(500)
       .json({ message: "Google Sign-In is not configured on the server. Administrator check server logs." })
   }
+
   try {
     const { token: idToken } = req.body
     if (!idToken) {
+      console.log("No ID token provided in request body")
       return res.status(400).json({ message: "ID token is required." })
     }
     console.log("Received ID token for Google verification:", idToken.substring(0, 30) + "...")
@@ -226,11 +257,14 @@ app.post("/auth/google/verify", async (req, res) => {
     }
 
     const appToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "24h" })
-    res.json({
+    const response = {
       message: "Google Sign-In successful",
       token: appToken,
       user: { id: user.id, username: user.username },
-    })
+    }
+
+    console.log("Sending successful response:", response)
+    res.json(response)
   } catch (error) {
     console.error("Google Sign-In error in /auth/google/verify:", error.message)
     console.error("Error details:", error)
@@ -668,7 +702,50 @@ Based on this excellent performance and the content of the PDF document, provide
   }
 })
 
+// Catch-all error handler for unmatched routes
+app.use("*", (req, res) => {
+  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`)
+  res.status(404).json({
+    error: "Route not found",
+    method: req.method,
+    url: req.originalUrl,
+    availableRoutes: [
+      "GET /health",
+      "GET /test",
+      "POST /auth/register",
+      "POST /auth/login",
+      "POST /auth/google/verify",
+      "GET /api/user/me",
+      "GET /api/user/dashboard-data",
+      "POST /api/analyze-pdf",
+      "POST /api/follow-up-chat",
+      "POST /api/quiz-feedback",
+    ],
+  })
+})
+
+// Global error handler
+app.use((err, req, res, next) => {
+  console.error("Global error handler:", err)
+  res.status(500).json({
+    error: "Internal server error",
+    message: err.message,
+    timestamp: new Date().toISOString(),
+  })
+})
+
 app.listen(port, () => {
   console.log(`Backend server listening at http://localhost:${port}`)
+  console.log("Available endpoints:")
+  console.log("  GET /health - Health check")
+  console.log("  GET /test - Test endpoint")
+  console.log("  POST /auth/register - User registration")
+  console.log("  POST /auth/login - User login")
+  console.log("  POST /auth/google/verify - Google Sign-In verification")
+  console.log("  GET /api/user/me - Get current user")
+  console.log("  GET /api/user/dashboard-data - Get user dashboard data")
+  console.log("  POST /api/analyze-pdf - Analyze PDF")
+  console.log("  POST /api/follow-up-chat - Follow-up chat")
+  console.log("  POST /api/quiz-feedback - Quiz feedback")
   console.log("Ensure GOOGLE_CLIENT_ID is set in your environment for Google Sign-In to function on the backend.")
 })
