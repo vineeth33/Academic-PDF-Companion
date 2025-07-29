@@ -1,10 +1,10 @@
-import { GoogleGenAI } from "@google/genai";
-import bcrypt from "bcryptjs"; // For password hashing
-import cors from "cors";
-import dotenv from "dotenv";
-import express from "express";
-import { OAuth2Client } from "google-auth-library"; // For Google Sign-In
-import jwt from "jsonwebtoken"; // For JWT
+import { GoogleGenAI } from "@google/genai"
+// import bcrypt from "bcryptjs" // For password hashing - COMMENTED OUT
+import cors from "cors"
+import dotenv from "dotenv"
+import express from "express"
+// import { OAuth2Client } from "google-auth-library" // For Google Sign-In - COMMENTED OUT
+// import jwt from "jsonwebtoken" // For JWT - COMMENTED OUT
 
 dotenv.config()
 
@@ -56,290 +56,257 @@ app.use((req, res, next) => {
 
 app.use(express.json({ limit: "50mb" }))
 
-// Add request logging middleware
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`)
-  if (req.url.includes("/auth/")) {
-    console.log("Auth request headers:", req.headers)
-    console.log("Auth request body:", req.body)
-  }
-  next()
-})
-
 if (!process.env.API_KEY) {
   console.error(
     "FATAL ERROR: API_KEY is not defined in the environment variables. Please create a .env file with your API_KEY.",
   )
   process.exit(1)
 }
-const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-and-long-jwt-key-for-dev"
-if (JWT_SECRET === "your-super-secret-and-long-jwt-key-for-dev") {
-  console.warn("WARNING: Using default JWT_SECRET. Please set a strong JWT_SECRET in your .env file for production!")
-}
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
-console.log("Attempting to use GOOGLE_CLIENT_ID for backend:", GOOGLE_CLIENT_ID)
+// AUTHENTICATION COMMENTED OUT
+// const JWT_SECRET = process.env.JWT_SECRET || "your-super-secret-and-long-jwt-key-for-dev"
+// if (JWT_SECRET === "your-super-secret-and-long-jwt-key-for-dev") {
+//   console.warn("WARNING: Using default JWT_SECRET. Please set a strong JWT_SECRET in your .env file for production!")
+// }
 
-if (!GOOGLE_CLIENT_ID) {
-  console.error(
-    "FATAL ERROR: GOOGLE_CLIENT_ID is not set in environment variables. Google Sign-In will not function on the backend. Please set it in your .env file.",
-  )
-}
-const googleAuthClient = new OAuth2Client(GOOGLE_CLIENT_ID)
+// const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID
+// console.log("Attempting to use GOOGLE_CLIENT_ID for backend:", GOOGLE_CLIENT_ID)
+
+// if (!GOOGLE_CLIENT_ID) {
+//   console.error(
+//     "FATAL ERROR: GOOGLE_CLIENT_ID is not set in environment variables. Google Sign-In will not function on the backend. Please set it in your .env file.",
+//   )
+// }
+// const googleAuthClient = new OAuth2Client(GOOGLE_CLIENT_ID)
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY })
 
 // --- In-memory data stores ---
-const users = [] // { id, username, passwordHash (optional), email (optional), googleId (optional), name (optional, from Google) }
-// userPdfs: { userId: [{ id, fileName, uploadTimestamp, analysisRecord }] }
-const userPdfs = {}
-// userQuizzes: { userId: [{ id, pdfFileName, score, quizTimestamp }] }
-const userQuizzes = {}
-// userChats: { userId: [{ id, pdfFileName, lastActivity, history: [{role, text, id}] }] }
-const userChats = {}
+// const users = [] // { id, username, passwordHash (optional), email (optional), googleId (optional), name (optional, from Google) } - COMMENTED OUT
+// userPdfs: { userId: [{ id, fileName, uploadTimestamp, analysisRecord }] } - NO LONGER USER-SPECIFIC
+const allPdfs = [] // Global storage instead of user-specific
+// userQuizzes: { userId: [{ id, pdfFileName, score, quizTimestamp }] } - NO LONGER USER-SPECIFIC
+const allQuizzes = [] // Global storage instead of user-specific
+// userChats: { userId: [{ id, pdfFileName, lastActivity, history: [{role, text, id}] }] } - NO LONGER USER-SPECIFIC
+let allChats = [] // Global storage instead of user-specific
 
-// --- Auth Middleware ---
-const authenticateToken = (req, res, next) => {
-  const authHeader = req.headers["authorization"]
-  const token = authHeader && authHeader.split(" ")[1]
+// --- Auth Middleware - COMMENTED OUT ---
+// const authenticateToken = (req, res, next) => {
+//   const authHeader = req.headers["authorization"]
+//   const token = authHeader && authHeader.split(" ")[1]
 
-  if (token == null) return res.sendStatus(401)
+//   if (token == null) return res.sendStatus(401)
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) {
-      console.error("JWT Verification Error:", err.message)
-      return res.status(403).json({ message: "Token is not valid or expired." })
-    }
-    req.user = user
-    next()
-  })
-}
+//   jwt.verify(token, JWT_SECRET, (err, user) => {
+//     if (err) {
+//       console.error("JWT Verification Error:", err.message)
+//       return res.status(403).json({ message: "Token is not valid or expired." })
+//     }
+//     req.user = user
+//     next()
+//   })
+// }
 
-// Add a health check endpoint
-app.get("/health", (req, res) => {
-  res.json({ status: "OK", timestamp: new Date().toISOString() })
-})
+// --- Auth Routes - ALL COMMENTED OUT ---
+// app.post("/auth/register", async (req, res) => {
+//   try {
+//     const { username, password } = req.body
+//     if (!username || !password) {
+//       return res.status(400).json({ message: "Username and password are required" })
+//     }
+//     if (users.find((user) => user.username === username)) {
+//       return res.status(400).json({ message: "Username already exists" })
+//     }
 
-// Add a test endpoint to verify server is working
-app.get("/test", (req, res) => {
-  res.json({ message: "Server is working", timestamp: new Date().toISOString() })
-})
+//     const hashedPassword = await bcrypt.hash(password, 10)
+//     const newUser = {
+//       id: Date.now().toString(),
+//       username,
+//       passwordHash: hashedPassword,
+//       email: username,
+//     }
+//     users.push(newUser)
 
-// --- Auth Routes ---
-app.post("/auth/register", async (req, res) => {
-  console.log("Register endpoint hit")
-  try {
-    const { username, password } = req.body
-    if (!username || !password) {
-      return res.status(400).json({ message: "Username and password are required" })
-    }
-    if (users.find((user) => user.username === username)) {
-      return res.status(400).json({ message: "Username already exists" })
-    }
+//     userPdfs[newUser.id] = []
+//     userQuizzes[newUser.id] = []
+//     userChats[newUser.id] = []
 
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const newUser = {
-      id: Date.now().toString(),
-      username,
-      passwordHash: hashedPassword,
-      email: username,
-    }
-    users.push(newUser)
+//     const token = jwt.sign({ id: newUser.id, username: newUser.username }, JWT_SECRET, { expiresIn: "24h" })
+//     res
+//       .status(201)
+//       .json({ message: "User created successfully", token, user: { id: newUser.id, username: newUser.username } })
+//   } catch (error) {
+//     console.error("Registration error:", error)
+//     res.status(500).json({ message: "Error registering user" })
+//   }
+// })
 
-    userPdfs[newUser.id] = []
-    userQuizzes[newUser.id] = []
-    userChats[newUser.id] = []
+// app.post("/auth/login", async (req, res) => {
+//   try {
+//     const { username, password } = req.body
+//     const user = users.find((u) => u.username === username || u.email === username)
+//     if (!user) {
+//       return res.status(400).json({ message: "Invalid credentials" })
+//     }
+//     if (!user.passwordHash) {
+//       return res.status(400).json({ message: "Please sign in with Google or reset password (if feature exists)." })
+//     }
 
-    const token = jwt.sign({ id: newUser.id, username: newUser.username }, JWT_SECRET, { expiresIn: "24h" })
-    res
-      .status(201)
-      .json({ message: "User created successfully", token, user: { id: newUser.id, username: newUser.username } })
-  } catch (error) {
-    console.error("Registration error:", error)
-    res.status(500).json({ message: "Error registering user" })
-  }
-})
+//     const isMatch = await bcrypt.compare(password, user.passwordHash)
+//     if (!isMatch) {
+//       return res.status(400).json({ message: "Invalid credentials" })
+//     }
 
-app.post("/auth/login", async (req, res) => {
-  console.log("Login endpoint hit")
-  try {
-    const { username, password } = req.body
-    const user = users.find((u) => u.username === username || u.email === username)
-    if (!user) {
-      return res.status(400).json({ message: "Invalid credentials" })
-    }
-    if (!user.passwordHash) {
-      return res.status(400).json({ message: "Please sign in with Google or reset password (if feature exists)." })
-    }
+//     const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "24h" })
+//     res.json({ message: "Logged in successfully", token, user: { id: user.id, username: user.username } })
+//   } catch (error) {
+//     console.error("Login error:", error)
+//     res.status(500).json({ message: "Error logging in" })
+//   }
+// })
 
-    const isMatch = await bcrypt.compare(password, user.passwordHash)
-    if (!isMatch) {
-      return res.status(400).json({ message: "Invalid credentials" })
-    }
+// app.post("/auth/google/verify", async (req, res) => {
+//   console.log("Google verify endpoint hit:", req.method, req.url)
 
-    const token = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "24h" })
-    res.json({ message: "Logged in successfully", token, user: { id: user.id, username: user.username } })
-  } catch (error) {
-    console.error("Login error:", error)
-    res.status(500).json({ message: "Error logging in" })
-  }
-})
+//   if (!GOOGLE_CLIENT_ID) {
+//     console.error("/auth/google/verify called, but GOOGLE_CLIENT_ID is not configured on the server.")
+//     return res
+//       .status(500)
+//       .json({ message: "Google Sign-In is not configured on the server. Administrator check server logs." })
+//   }
+//   try {
+//     const { token: idToken } = req.body
+//     if (!idToken) {
+//       return res.status(400).json({ message: "ID token is required." })
+//     }
+//     console.log("Received ID token for Google verification:", idToken.substring(0, 30) + "...")
 
-// Fix the Google auth endpoint path and add proper error handling
-app.post("/auth/google/verify", async (req, res) => {
-  console.log("=== Google verify endpoint hit ===")
-  console.log("Method:", req.method)
-  console.log("URL:", req.url)
-  console.log("Headers:", req.headers)
-  console.log("Body:", req.body)
+//     const ticket = await googleAuthClient.verifyIdToken({
+//       idToken,
+//       audience: GOOGLE_CLIENT_ID,
+//     })
+//     const payload = ticket.getPayload()
 
-  // Ensure we always return JSON
-  res.setHeader("Content-Type", "application/json")
+//     if (!payload) {
+//       console.error("Google token verification failed: No payload.")
+//       return res.status(400).json({ message: "Invalid Google token: No payload." })
+//     }
+//     console.log("Google token payload:", payload)
 
-  if (!GOOGLE_CLIENT_ID) {
-    console.error("/auth/google/verify called, but GOOGLE_CLIENT_ID is not configured on the server.")
-    return res
-      .status(500)
-      .json({ message: "Google Sign-In is not configured on the server. Administrator check server logs." })
-  }
+//     const googleId = payload["sub"]
+//     const email = payload["email"]
+//     const name = payload["name"] || (email ? email.split("@")[0] : `user_${googleId.substring(0, 5)}`)
 
-  try {
-    const { token: idToken } = req.body
-    if (!idToken) {
-      console.log("No ID token provided in request body")
-      return res.status(400).json({ message: "ID token is required." })
-    }
-    console.log("Received ID token for Google verification:", idToken.substring(0, 30) + "...")
+//     let user = users.find((u) => u.googleId === googleId)
 
-    const ticket = await googleAuthClient.verifyIdToken({
-      idToken,
-      audience: GOOGLE_CLIENT_ID,
-    })
-    const payload = ticket.getPayload()
+//     if (!user && email) {
+//       user = users.find((u) => u.email === email)
+//       if (user && !user.googleId) {
+//         user.googleId = googleId
+//         if (!user.name) user.name = name
+//       }
+//     }
 
-    if (!payload) {
-      console.error("Google token verification failed: No payload.")
-      return res.status(400).json({ message: "Invalid Google token: No payload." })
-    }
-    console.log("Google token payload:", payload)
+//     if (!user) {
+//       const newUserId = Date.now().toString()
+//       user = {
+//         id: newUserId,
+//         username: name,
+//         email: email,
+//         googleId: googleId,
+//         name: name,
+//         passwordHash: null,
+//       }
+//       users.push(user)
+//       userPdfs[newUserId] = []
+//       userQuizzes[newUserId] = []
+//       userChats[newUserId] = []
+//       console.log("New user created via Google Sign-In:", user)
+//     } else {
+//       console.log("Existing user found for Google Sign-In:", user)
+//     }
 
-    const googleId = payload["sub"]
-    const email = payload["email"]
-    const name = payload["name"] || (email ? email.split("@")[0] : `user_${googleId.substring(0, 5)}`)
+//     const appToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "24h" })
+//     res.json({
+//       message: "Google Sign-In successful",
+//       token: appToken,
+//       user: { id: user.id, username: user.username },
+//     })
+//   } catch (error) {
+//     console.error("Google Sign-In error in /auth/google/verify:", error.message)
+//     console.error("Error details:", error)
+//     res.status(500).json({ message: "Error verifying Google token or processing sign-in.", details: error.message })
+//   }
+// })
 
-    let user = users.find((u) => u.googleId === googleId)
+// --- User Profile/Data Routes - COMMENTED OUT ---
+// app.get("/api/user/me", authenticateToken, (req, res) => {
+//   const userProfile = users.find((u) => u.id === req.user.id)
+//   if (!userProfile) return res.status(404).json({ message: "User not found" })
+//   res.json({
+//     user: { id: userProfile.id, username: userProfile.username, email: userProfile.email, name: userProfile.name },
+//   })
+// })
 
-    if (!user && email) {
-      user = users.find((u) => u.email === email)
-      if (user && !user.googleId) {
-        user.googleId = googleId
-        if (!user.name) user.name = name
-      }
-    }
+// app.get("/api/user/dashboard-data", authenticateToken, (req, res) => {
+//   const userId = req.user.id
+//   const uploads = (userPdfs[userId] || []).map((pdf) => ({
+//     id: pdf.id,
+//     fileName: pdf.fileName,
+//     uploadTimestamp: pdf.uploadTimestamp,
+//     // analysisRecord is intentionally not sent here to keep dashboard payload light
+//   }))
+//   const chats = (userChats[userId] || []).map((chat) => ({
+//     id: chat.id,
+//     pdfFileName: chat.pdfFileName,
+//     lastActivity: chat.lastActivity,
+//     messagesCount: chat.history ? chat.history.length : 0,
+//   }))
+//   const data = {
+//     uploads: uploads,
+//     quizzes: userQuizzes[userId] || [],
+//     chats: chats,
+//   }
+//   res.json(data)
+// })
 
-    if (!user) {
-      const newUserId = Date.now().toString()
-      user = {
-        id: newUserId,
-        username: name,
-        email: email,
-        googleId: googleId,
-        name: name,
-        passwordHash: null,
-      }
-      users.push(user)
-      userPdfs[newUserId] = []
-      userQuizzes[newUserId] = []
-      userChats[newUserId] = []
-      console.log("New user created via Google Sign-In:", user)
-    } else {
-      console.log("Existing user found for Google Sign-In:", user)
-    }
+// app.get("/api/user/analysis/:analysisId", authenticateToken, (req, res) => {
+//   const userId = req.user.id
+//   const analysisId = req.params.analysisId
+//   const userUploads = userPdfs[userId] || []
+//   const analysis = userUploads.find((up) => up.id === analysisId)
 
-    const appToken = jwt.sign({ id: user.id, username: user.username }, JWT_SECRET, { expiresIn: "24h" })
-    const response = {
-      message: "Google Sign-In successful",
-      token: appToken,
-      user: { id: user.id, username: user.username },
-    }
+//   if (!analysis) {
+//     return res.status(404).json({ message: "Analysis not found or access denied." })
+//   }
+//   res.json({
+//     id: analysis.id,
+//     fileName: analysis.fileName,
+//     uploadTimestamp: analysis.uploadTimestamp,
+//     analysisRecord: analysis.analysisRecord,
+//   })
+// })
 
-    console.log("Sending successful response:", response)
-    res.json(response)
-  } catch (error) {
-    console.error("Google Sign-In error in /auth/google/verify:", error.message)
-    console.error("Error details:", error)
-    res.status(500).json({ message: "Error verifying Google token or processing sign-in.", details: error.message })
-  }
-})
+// app.get("/api/user/chat/:chatId", authenticateToken, (req, res) => {
+//   const userId = req.user.id
+//   const chatId = req.params.chatId
+//   const userUserChats = userChats[userId] || []
+//   const chat = userUserChats.find((c) => c.id === chatId)
 
-// --- User Profile/Data Routes ---
-app.get("/api/user/me", authenticateToken, (req, res) => {
-  const userProfile = users.find((u) => u.id === req.user.id)
-  if (!userProfile) return res.status(404).json({ message: "User not found" })
-  res.json({
-    user: { id: userProfile.id, username: userProfile.username, email: userProfile.email, name: userProfile.name },
-  })
-})
+//   if (!chat) {
+//     return res.status(404).json({ message: "Chat not found or access denied." })
+//   }
+//   res.json({
+//     id: chat.id,
+//     pdfFileName: chat.pdfFileName,
+//     lastActivity: chat.lastActivity,
+//     history: chat.history || [],
+//   })
+// })
 
-app.get("/api/user/dashboard-data", authenticateToken, (req, res) => {
-  const userId = req.user.id
-  const uploads = (userPdfs[userId] || []).map((pdf) => ({
-    id: pdf.id,
-    fileName: pdf.fileName,
-    uploadTimestamp: pdf.uploadTimestamp,
-    // analysisRecord is intentionally not sent here to keep dashboard payload light
-  }))
-  const chats = (userChats[userId] || []).map((chat) => ({
-    id: chat.id,
-    pdfFileName: chat.pdfFileName,
-    lastActivity: chat.lastActivity,
-    messagesCount: chat.history ? chat.history.length : 0,
-  }))
-  const data = {
-    uploads: uploads,
-    quizzes: userQuizzes[userId] || [],
-    chats: chats,
-  }
-  res.json(data)
-})
+// --- Protected API Routes (analyze-pdf, follow-up-chat, quiz-feedback) - AUTHENTICATION REMOVED ---
 
-app.get("/api/user/analysis/:analysisId", authenticateToken, (req, res) => {
-  const userId = req.user.id
-  const analysisId = req.params.analysisId
-  const userUploads = userPdfs[userId] || []
-  const analysis = userUploads.find((up) => up.id === analysisId)
-
-  if (!analysis) {
-    return res.status(404).json({ message: "Analysis not found or access denied." })
-  }
-  res.json({
-    id: analysis.id,
-    fileName: analysis.fileName,
-    uploadTimestamp: analysis.uploadTimestamp,
-    analysisRecord: analysis.analysisRecord,
-  })
-})
-
-app.get("/api/user/chat/:chatId", authenticateToken, (req, res) => {
-  const userId = req.user.id
-  const chatId = req.params.chatId
-  const userUserChats = userChats[userId] || []
-  const chat = userUserChats.find((c) => c.id === chatId)
-
-  if (!chat) {
-    return res.status(404).json({ message: "Chat not found or access denied." })
-  }
-  res.json({
-    id: chat.id,
-    pdfFileName: chat.pdfFileName,
-    lastActivity: chat.lastActivity,
-    history: chat.history || [],
-  })
-})
-
-// --- Protected API Routes (analyze-pdf, follow-up-chat, quiz-feedback) ---
-
-app.post("/api/analyze-pdf", authenticateToken, async (req, res) => {
+app.post("/api/analyze-pdf", async (req, res) => {
   try {
     const {
       base64PdfData,
@@ -359,7 +326,7 @@ app.post("/api/analyze-pdf", authenticateToken, async (req, res) => {
       chatSupport,
       initialQuestion,
     } = req.body
-    const userId = req.user.id
+    // const userId = req.user.id - COMMENTED OUT
 
     if (!base64PdfData || !pdfMimeType || !pdfFileName) {
       return res.status(400).json({ error: "Missing PDF data, MIME type, or filename." })
@@ -444,30 +411,29 @@ Specifically for "quiz.options": this MUST be an array of strings, where each st
       parsedData.analogyTopic = analogyTopic
       parsedData.language = language
 
-      if (!userPdfs[userId]) userPdfs[userId] = []
-      userPdfs[userId].unshift({
+      // Store globally instead of per user
+      allPdfs.unshift({
         id: Date.now().toString(),
         fileName: pdfFileName,
         uploadTimestamp: new Date().toISOString(),
         analysisRecord: parsedData,
       })
-      if (userPdfs[userId].length > 10) userPdfs[userId].pop()
+      if (allPdfs.length > 50) allPdfs.pop() // Keep last 50 analyses
 
       if (parsedData.chatAnswer && chatSupport && initialQuestion) {
-        if (!userChats[userId]) userChats[userId] = []
         const newChatId = Date.now().toString()
         const initialChatHistory = [
           { role: "user", text: initialQuestion, id: `${newChatId}_user_init` },
           { role: "model", text: parsedData.chatAnswer, id: `${newChatId}_model_init` },
         ]
 
-        userChats[userId].unshift({
+        allChats.unshift({
           id: newChatId,
           pdfFileName: pdfFileName,
           lastActivity: new Date().toISOString(),
           history: initialChatHistory,
         })
-        if (userChats[userId].length > 5) userChats[userId].pop()
+        if (allChats.length > 25) allChats.pop() // Keep last 25 chats
       }
       res.json(parsedData)
     } catch (parseError) {
@@ -492,13 +458,13 @@ Specifically for "quiz.options": this MUST be an array of strings, where each st
   }
 })
 
-app.post("/api/follow-up-chat", authenticateToken, async (req, res) => {
-  const userId = req.user.id // For logging
-  console.log(`\n--- Follow-up Chat Request for user ${userId} ---`)
+app.post("/api/follow-up-chat", async (req, res) => {
+  // const userId = req.user.id // For logging - COMMENTED OUT
+  console.log(`\n--- Follow-up Chat Request ---`)
   try {
     const { base64PdfData, pdfMimeType, pdfFileName, priorChatHistory, newMessageText, newUserMessageId } = req.body
 
-    console.log(`Follow-up: Received for PDF: "${pdfFileName}", User: ${userId}`)
+    console.log(`Follow-up: Received for PDF: "${pdfFileName}"`)
     console.log(`Follow-up: newMessageText: "${newMessageText}" (ID: ${newUserMessageId})`)
     console.log(`Follow-up: priorChatHistory length: ${priorChatHistory ? priorChatHistory.length : "N/A"}`)
     if (priorChatHistory && priorChatHistory.length > 0) {
@@ -519,10 +485,6 @@ app.post("/api/follow-up-chat", authenticateToken, async (req, res) => {
     if (!newUserMessageId) {
       return res.status(400).json({ error: "Missing new user message ID." })
     }
-
-    // COMPLETELY NEW APPROACH: Instead of using chat history with the API,
-    // we'll construct a single prompt with the entire conversation history
-    // and send it as a single request
 
     // Filter out system_error messages and only keep user/model messages
     const validMessages = priorChatHistory.filter(
@@ -574,13 +536,13 @@ Keep your answer concise, informative, and directly related to the document cont
     const modelMessageForStorage = { role: "model", text: responseText, id: newModelMessageId }
     const updatedFullHistory = [...priorChatHistory, userMessageForStorage, modelMessageForStorage]
 
-    if (!userChats[userId]) userChats[userId] = []
-    let chatSession = userChats[userId].find((c) => c.pdfFileName === pdfFileName)
+    // Store globally instead of per user
+    let chatSession = allChats.find((c) => c.pdfFileName === pdfFileName)
 
     if (chatSession) {
       chatSession.lastActivity = new Date().toISOString()
       chatSession.history = updatedFullHistory
-      userChats[userId] = [chatSession, ...userChats[userId].filter((c) => c.id !== chatSession.id)]
+      allChats = allChats.filter((c) => c.id !== chatSession.id).concat(chatSession)
     } else {
       chatSession = {
         id: Date.now().toString(),
@@ -588,13 +550,13 @@ Keep your answer concise, informative, and directly related to the document cont
         lastActivity: new Date().toISOString(),
         history: updatedFullHistory,
       }
-      userChats[userId].unshift(chatSession)
+      allChats.unshift(chatSession)
     }
-    if (userChats[userId].length > 5) userChats[userId].pop()
+    if (allChats.length > 25) allChats.pop()
 
     res.json({ chatResponse: responseText, modelMessageId: newModelMessageId })
   } catch (error) {
-    console.error(`Error in /api/follow-up-chat for user ${userId}:`, error.message)
+    console.error(`Error in /api/follow-up-chat:`, error.message)
     console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2))
 
     if (error.response && error.response.data) {
@@ -626,10 +588,10 @@ Keep your answer concise, informative, and directly related to the document cont
   }
 })
 
-app.post("/api/quiz-feedback", authenticateToken, async (req, res) => {
+app.post("/api/quiz-feedback", async (req, res) => {
   try {
     const { base64PdfData, pdfMimeType, pdfFileName, score, incorrectQuestions } = req.body
-    const userId = req.user.id
+    // const userId = req.user.id - COMMENTED OUT
 
     if (!base64PdfData || !pdfMimeType || !pdfFileName) {
       return res.status(400).json({ error: "Missing PDF data, MIME type or filename for context." })
@@ -676,14 +638,14 @@ Based on this excellent performance and the content of the PDF document, provide
       },
     })
 
-    if (!userQuizzes[userId]) userQuizzes[userId] = []
-    userQuizzes[userId].unshift({
+    // Store globally instead of per user
+    allQuizzes.unshift({
       id: Date.now().toString(),
       pdfFileName: pdfFileName,
       score: score,
       quizTimestamp: new Date().toISOString(),
     })
-    if (userQuizzes[userId].length > 10) userQuizzes[userId].pop()
+    if (allQuizzes.length > 50) allQuizzes.pop()
 
     res.json({ feedback: genAIResponse.text })
   } catch (error) {
@@ -702,50 +664,7 @@ Based on this excellent performance and the content of the PDF document, provide
   }
 })
 
-// Catch-all error handler for unmatched routes
-app.use("*", (req, res) => {
-  console.log(`404 - Route not found: ${req.method} ${req.originalUrl}`)
-  res.status(404).json({
-    error: "Route not found",
-    method: req.method,
-    url: req.originalUrl,
-    availableRoutes: [
-      "GET /health",
-      "GET /test",
-      "POST /auth/register",
-      "POST /auth/login",
-      "POST /auth/google/verify",
-      "GET /api/user/me",
-      "GET /api/user/dashboard-data",
-      "POST /api/analyze-pdf",
-      "POST /api/follow-up-chat",
-      "POST /api/quiz-feedback",
-    ],
-  })
-})
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error("Global error handler:", err)
-  res.status(500).json({
-    error: "Internal server error",
-    message: err.message,
-    timestamp: new Date().toISOString(),
-  })
-})
-
 app.listen(port, () => {
   console.log(`Backend server listening at http://localhost:${port}`)
-  console.log("Available endpoints:")
-  console.log("  GET /health - Health check")
-  console.log("  GET /test - Test endpoint")
-  console.log("  POST /auth/register - User registration")
-  console.log("  POST /auth/login - User login")
-  console.log("  POST /auth/google/verify - Google Sign-In verification")
-  console.log("  GET /api/user/me - Get current user")
-  console.log("  GET /api/user/dashboard-data - Get user dashboard data")
-  console.log("  POST /api/analyze-pdf - Analyze PDF")
-  console.log("  POST /api/follow-up-chat - Follow-up chat")
-  console.log("  POST /api/quiz-feedback - Quiz feedback")
-  console.log("Ensure GOOGLE_CLIENT_ID is set in your environment for Google Sign-In to function on the backend.")
+  console.log("Authentication disabled - running in open mode")
 })
