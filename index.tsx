@@ -10,7 +10,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
 
 // IMPORTANT: Replace with your actual Google Client ID
-const GOOGLE_CLIENT_ID = "520295613669-1p3cov5p9c0c2a01sv0ktmhn4c288vbc.apps.googleusercontent.com; 
+const GOOGLE_CLIENT_ID = "520295613669-1p3cov5p9c0c2a01sv0ktmhn4c288vbc.apps.googleusercontent.com"; 
 
 const DOCUMENT_TYPES = [
   { value: "research_article", label: "Research Article" },
