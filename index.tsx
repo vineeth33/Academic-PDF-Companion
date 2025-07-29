@@ -183,7 +183,7 @@ function App() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
-  const backendBaseUrl = 'http://localhost:3001'; 
+  const backendBaseUrl = 'https://academic-pdf-companion.onrender.com'; 
   const authBackendUrl = `${backendBaseUrl}/auth`;
   const apiBackendUrl = `${backendBaseUrl}/api`;
 
